@@ -27,7 +27,9 @@ class Simulation {
         this.isRunning = false;
         this.speedMultiplier = 1;
         this.scale = Math.floor(maxLength/5) + " km";
-        this.orbitalPath  = true;
+        this.showOrbitalPath  = orbitalPathCheckbox.checked;
+        this.showVelocity = velocityCheckbox.checked;
+        this.showAcceleration = accelerationCheckbox.checked;
 
         // orbit 
         this.argumentOfPeriapsis = argumentOfPeriapsis;
@@ -51,10 +53,17 @@ class Simulation {
         // satellite
         this.satLength = 35;
         this.satTrueAnomalie = Math.PI;
-        // kepler's first law
         this.satPosition = function(theta) {
-            let radius = (this.orbitSemiMajorAxis * (1 - e**2))/(1 + e * Math.cos(theta));
+            let radius = (this.orbitSemiMajorAxis * (1 - e**2))/(1 + e * Math.cos(theta)); //polar function describing orbital path from kepler's first law
             return [-Math.cos(theta) * radius - this.focalDistance, Math.sin(theta) * radius];
+        }
+
+        this.velocity = function(theta) {
+
+        }
+
+        this.acceleration = function(theta) {
+
         }
         
     }
@@ -90,7 +99,7 @@ class Simulation {
         ctx.restore();
 
         // orbit
-        if (this.orbitalPath) {
+        if (this.showOrbitalPath) {
             ctx.save();
             ctx.translate(canvas.width/2, canvas.height/2);
             ctx.beginPath();
@@ -114,15 +123,29 @@ class Simulation {
 
 
         // scale
+        const scaleX = 490;
         ctx.beginPath(); 
-        ctx.rect(450, 30, 100, 5);
+        ctx.rect(scaleX, 30, 100, 5);
         ctx.fillStyle = "white";
         ctx.fill();
         // scale text
-        ctx.font = "18px Courier New";
+        ctx.font = "16px Courier New";
         ctx.textAlign = "center";
         ctx.fillStyle = "white";
-        ctx.fillText(this.scale, 500, 25);  
+        ctx.fillText(this.scale, scaleX + 50, 25); 
+        
+        // speed scale
+        const speedScaleX = 435;
+        const speedScaleY = 25;
+        ctx.font = "16px Courier New";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "white";
+        if (this.speedMultiplier == 24){
+            ctx.fillText("1 day/s", speedScaleX, speedScaleY); 
+        } else {
+            ctx.fillText(this.speedMultiplier + " h/s", speedScaleX, speedScaleY); 
+        }
+        
 
         //border
         /*

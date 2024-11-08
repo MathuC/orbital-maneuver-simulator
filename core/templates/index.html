@@ -22,8 +22,8 @@
                     <label id="speed-label"> Simulation speed: <span id='speed-value'>1 h/s</span></label><br>
                     <center><input type="range" id="speed-slider" min="1" max="24" step="1" value="1"></center>
                     <input id="orbital-path-checkbox" class="checkboxes" type="checkbox" checked><label style="padding-left: 5px;"> Orbital path</label><br>
-                    <input id="velocity-checkbox" class="checkboxes" type="checkbox"><label style="padding-left: 5px; color:blue; font-size: 16px; font-weight: 900;"> \( \vec{v} \) </label><br>
-                    <input id="acceleration-checkbox" class="checkboxes" type="checkbox"><label style="padding-left: 5px; color:red; font-size: 16px; font-weight: 900;"> \( \vec{a} \) </label><br>
+                    <input id="velocity-checkbox" class="checkboxes" type="checkbox" checked><label style="padding-left: 5px; color:blue; font-size: 16px; font-weight: 900;"> \( \vec{v} \) </label><br>
+                    <input id="acceleration-checkbox" class="checkboxes" type="checkbox" checked><label style="padding-left: 5px; color:red; font-size: 16px; font-weight: 900;"> \( \vec{a} \) </label><br>
                 </div>
                     <div id="tabs">
                         <span id="orbit-tab-btn" class="active-tab" onclick="handleOrbitTabClick()">Orbit</span> 
@@ -87,24 +87,57 @@
                     speedValue.innerHTML = speedSlider.value + " h/s";
                 }
                 simulation.speedMultiplier = parseInt(speedSlider.value);
+                if (!simulation.isRunning){
+                    simulation.draw();
+                }
             } else {
                 speedSlider.value = 1;
             }
         });
 
         const orbitalPathCheckbox = document.getElementById("orbital-path-checkbox");
+        const velocityCheckbox = document.getElementById("velocity-checkbox");
+        const accelerationCheckbox = document.getElementById("acceleration-checkbox");
+        
         orbitalPathCheckbox.addEventListener('change', () => {
             if (typeof simulation !== "undefined") {
                 if (orbitalPathCheckbox.checked) {
-                    simulation.orbitalPath = true;
+                    simulation.showOrbitalPath = true;
                 } else {
-                    simulation.orbitalPath = false;
+                    simulation.showOrbitalPath = false;
+                }
+                if (!simulation.isRunning){
+                    simulation.draw();
+                }
+            }
+        });
+
+        velocityCheckbox.addEventListener('change', () => {
+            if (typeof simulation !== "undefined") {
+                if (velocityCheckbox.checked) {
+                    simulation.showVelocity = true;
+                } else {
+                    simulation.showVelocity = false;
+                }
+                if (!simulation.isRunning){
+                    simulation.draw();
+                }
+            }
+        });
+
+        accelerationCheckbox.addEventListener('change', () => {
+            if (typeof simulation !== "undefined") {
+                if (accelerationCheckbox.checked) {
+                    simulation.showAcceleration = true;
+                } else {
+                    simulation.showAcceleration = false;
+                }
+                if (!simulation.isRunning){
+                    simulation.draw();
                 }
             }
         });
         
-
-
         // tabs
         const orbitTabBtn = document.getElementById("orbit-tab-btn");
         const maneuverTabBtn = document.getElementById("maneuver-tab-btn");
