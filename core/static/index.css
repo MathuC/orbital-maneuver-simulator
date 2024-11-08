@@ -1,0 +1,124 @@
+body {
+    font-size: 14px;
+}
+
+#title {
+    font-family: Courier New;
+    font-weight: 550;
+    text-align: center;
+    margin: 10px;
+    margin-bottom: -5px;
+}
+
+#credit {
+    font-size: 15px;
+    font-family: Courier New;
+    margin-bottom: 2px;
+    border-radius:2px;
+    padding-right: 2px;
+    padding-left: 2px;
+}
+
+#credit:hover {
+    background-color: rgb(208, 208, 208);
+}
+
+#credit-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+#container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* changed the flex direction to column so align-items which would center items vertically, centers it horizontally */
+}
+
+#top-container {
+    display: flex;
+    justify-content: center;  /* Centers horizontally */
+    /* align-items: center; */     /* Centers vertically */
+}
+
+#canvas {
+    background-color: black;
+}
+
+#right-panel {
+    min-width: 250px;
+    border: 2px solid black;
+}
+
+#toggles {
+    border-bottom: 2px solid black;
+    padding: 5px;
+}
+
+#play-pause-btn {
+    font-size: 20px;
+    width: 40px;
+    margin-bottom: 10px;
+}
+
+#tabs {
+    display: flex;
+    font-size: 16px;
+}
+
+#orbit-tab-btn {
+    background-color: rgb(215, 215, 215);
+    border: 1px solid black;
+    padding: 5px;
+    border-left: none;
+    border-top: none;
+    cursor: pointer;
+}
+
+#maneuver-tab-btn {
+    background-color: rgb(215, 215, 215);
+    border: 1px solid black;
+    padding: 5px;
+    display: inline-block;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    cursor: pointer;
+}
+
+/* When the tab is clicked */
+#orbit-tab-btn.active-tab, #maneuver-tab-btn.active-tab {
+    background-color: white;
+    border-bottom: none;
+}
+
+#filler-tab-btn {
+    background-color: rgb(215, 215, 215);
+    border: 1px solid black;
+    padding: 5px;
+    display: inline-block;
+    border-top: none;
+    border-right: none;
+    width: 64px;
+}
+
+#orbit-form-container, #maneuver-form-container {
+    border: 1px solid black;
+    border-right: none;
+    border-left: none;
+    border-bottom: none;
+    border-top: none;
+    padding: 5px;
+}
+
+#orbitAxisValue, #orbitEccValue, #orbitArgValue {
+    width: 100px;
+}
+
+#info {
+    display: none;
+    width: 850px;
+    min-width: 850px; /* canvas width + right-panel min-width */
+    border: 2px solid black;
+    border-top: none;
+    padding: 5px
+}
