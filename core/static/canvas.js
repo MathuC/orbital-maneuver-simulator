@@ -19,14 +19,15 @@ let k = 50;
 class Simulation {
 
     constructor(semiMajorAxis, semiMinorAxis, focalDistance, e, periapsis, argumentOfPeriapsis, maxLength, orbitalPeriod) {
-        document.getElementById('speed-slider').value = 1;
-        document.getElementById('speed-value').innerHTML = "1 h/s";
-        
+        speedSlider.value = 1;
+        speedValue.innerHTML = "1 h/s";
+
         this.animation = null;
         let kmPerPixel = maxLength/500;
         this.isRunning = false;
         this.speedMultiplier = 1;
         this.scale = Math.floor(maxLength/5) + " km";
+        this.orbitalPath  = true;
 
         // orbit 
         this.argumentOfPeriapsis = argumentOfPeriapsis;
@@ -89,16 +90,18 @@ class Simulation {
         ctx.restore();
 
         // orbit
-        ctx.save();
-        ctx.translate(canvas.width/2, canvas.height/2);
-        ctx.beginPath();
-        ctx.ellipse(0, 0, this.orbitSemiMajorAxis, this.orbitSemiMinorAxis, -this.argumentOfPeriapsis, 0, 2 * Math.PI);
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = "white";
-        ctx.stroke();
-        ctx.closePath();
-        ctx.restore();
-        ctx.save();
+        if (this.orbitalPath) {
+            ctx.save();
+            ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, this.orbitSemiMajorAxis, this.orbitSemiMinorAxis, -this.argumentOfPeriapsis, 0, 2 * Math.PI);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "white";
+            ctx.stroke();
+            ctx.closePath();
+            ctx.restore();
+            ctx.save();
+        }
 
         // satellite
         ctx.save();

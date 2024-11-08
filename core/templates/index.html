@@ -18,11 +18,12 @@
             <canvas id="canvas" width="600" height="600"></canvas> <!-- You need to put the width and height here, not the CSS or canvas is blurry -->
             <div id="right-panel">
                 <div id="toggles">
-                    <center><button id="play-pause-btn">&#9654;</button><br>
-                    <label> Simulation speed: <span id='speed-value'>1 h/s</span></label><br>
-                    <input type="range" id="speed-slider" min="1" max="24" step="1" value="1">
-                    </center>
-                    <br>
+                    <center><button id="play-pause-btn">&#9654;</button><br></center>
+                    <label id="speed-label"> Simulation speed: <span id='speed-value'>1 h/s</span></label><br>
+                    <center><input type="range" id="speed-slider" min="1" max="24" step="1" value="1"></center>
+                    <input id="orbital-path-checkbox" class="checkboxes" type="checkbox" checked><label style="padding-left: 5px;"> Orbital path</label><br>
+                    <input id="velocity-checkbox" class="checkboxes" type="checkbox"><label style="padding-left: 5px; color:blue; font-size: 16px; font-weight: 900;"> \( \vec{v} \) </label><br>
+                    <input id="acceleration-checkbox" class="checkboxes" type="checkbox"><label style="padding-left: 5px; color:red; font-size: 16px; font-weight: 900;"> \( \vec{a} \) </label><br>
                 </div>
                     <div id="tabs">
                         <span id="orbit-tab-btn" class="active-tab" onclick="handleOrbitTabClick()">Orbit</span> 
@@ -76,19 +77,35 @@
             }
         });
 
-        document.getElementById("speed-slider").addEventListener("input", () => {
+        const speedSlider = document.getElementById("speed-slider");
+        const speedValue = document.getElementById("speed-value");
+        speedSlider.addEventListener("input", () => {
             if (typeof simulation !== "undefined") {
-                if (document.getElementById("speed-slider").value == "24") {
-                    document.getElementById("speed-value").innerHTML = "1 day/s"
+                if (speedSlider.value == "24") {
+                    speedValue.innerHTML = "1 day/s"
                 } else {
-                    document.getElementById("speed-value").innerHTML = document.getElementById("speed-slider").value + " h/s";
+                    speedValue.innerHTML = speedSlider.value + " h/s";
                 }
-                simulation.speedMultiplier = parseInt(document.getElementById("speed-slider").value);
+                simulation.speedMultiplier = parseInt(speedSlider.value);
             } else {
-                document.getElementById("speed-slider").value = 1;
+                speedSlider.value = 1;
+            }
+        });
+
+        const orbitalPathCheckbox = document.getElementById("orbital-path-checkbox");
+        orbitalPathCheckbox.addEventListener('change', () => {
+            if (typeof simulation !== "undefined") {
+                if (orbitalPathCheckbox.checked) {
+                    simulation.orbitalPath = true;
+                } else {
+                    simulation.orbitalPath = false;
+                }
             }
         });
         
+
+
+        // tabs
         const orbitTabBtn = document.getElementById("orbit-tab-btn");
         const maneuverTabBtn = document.getElementById("maneuver-tab-btn");
         const orbitForm = document.getElementById("orbit-form-container");
@@ -113,7 +130,8 @@
             }
         }
 
-        //syncs slider and value next to it
+        // forms
+        // syncs slider and value next to it
         function syncSliderAndInput(id) {
             const slider = document.getElementById(id + "-slider");
             const value = document.getElementById(id + "-value");
@@ -176,7 +194,17 @@
 
         changeEccMax();
 
+        // MathJax config for velocity and acceleration vectors
+        window.MathJax = {
+            tex: {
+              inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+              fontCache: 'global'
+            }
+        };
     </script>
+    <script type="text/javascript" id="MathJax-script" defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
     <script src="{% static 'canvas.js' %}"></script>
     <script>
 
