@@ -19,7 +19,7 @@
             <div id="right-panel">
                 <div id="toggles">
                     <center><button id="play-pause-btn">&#9654;</button><br>
-                    <label> Simulation speed: <span id='speed-value'>1</span> h/s</label><br>
+                    <label> Simulation speed: <span id='speed-value'>1 h/s</span></label><br>
                     <input type="range" id="speed-slider" min="1" max="24" step="1" value="1">
                     </center>
                     <br>
@@ -76,9 +76,13 @@
             }
         });
 
-        document.getElementById("speed-slider").addEventListener('input', () => {
+        document.getElementById("speed-slider").addEventListener("input", () => {
             if (typeof simulation !== "undefined") {
-                document.getElementById("speed-value").innerHTML = document.getElementById("speed-slider").value;
+                if (document.getElementById("speed-slider").value == "24") {
+                    document.getElementById("speed-value").innerHTML = "1 day/s"
+                } else {
+                    document.getElementById("speed-value").innerHTML = document.getElementById("speed-slider").value + " h/s";
+                }
                 simulation.speedMultiplier = parseInt(document.getElementById("speed-slider").value);
             } else {
                 document.getElementById("speed-slider").value = 1;

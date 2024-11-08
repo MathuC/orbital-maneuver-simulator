@@ -20,12 +20,13 @@ class Simulation {
 
     constructor(semiMajorAxis, semiMinorAxis, focalDistance, e, periapsis, argumentOfPeriapsis, maxLength, orbitalPeriod) {
         document.getElementById('speed-slider').value = 1;
-        document.getElementById('speed-value').innerHTML = 1;
-
+        document.getElementById('speed-value').innerHTML = "1 h/s";
+        
         this.animation = null;
         let kmPerPixel = maxLength/500;
         this.isRunning = false;
         this.speedMultiplier = 1;
+        this.scale = Math.floor(maxLength/5) + " km";
 
         // orbit 
         this.argumentOfPeriapsis = argumentOfPeriapsis;
@@ -107,6 +108,28 @@ class Simulation {
         ctx.rotate(this.argumentOfPeriapsis);
         ctx.drawImage(satImg, -this.satLength/2, -this.satLength/2, this.satLength, this.satLength);
         ctx.restore();
+
+
+        // scale
+        ctx.beginPath(); 
+        ctx.rect(450, 30, 100, 5);
+        ctx.fillStyle = "white";
+        ctx.fill();
+        // scale text
+        ctx.font = "18px Courier New";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "white";
+        ctx.fillText(this.scale, 500, 25);  
+
+        //border
+        /*
+        ctx.save();
+        ctx.beginPath(); // Start a new path
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(50, 50, 500, 500);
+        ctx.restore();
+        */
 
         // angle increments for next animation frame
         this.earthArg -= this.speedMultiplier * 2 * Math.PI/(100 * 24);
