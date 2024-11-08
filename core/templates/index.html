@@ -13,14 +13,13 @@
   </head>
   <body>
     <h3 id="title">ORBITAL MANEUVER SIMULATOR</h3>
-    <center><span id="credit"><a href="https://mathusan.net" id="credit-link">BY MATHUSAN</a></span></center>
     <div id="container">
         <div id="top-container">
             <canvas id="canvas" width="600" height="600"></canvas> <!-- You need to put the width and height here, not the CSS or canvas is blurry -->
             <div id="right-panel">
                 <div id="toggles">
                     <center><button id="play-pause-btn">&#9654;</button><br>
-                    <label> Simulation speed: <span id='speed-value'>1</span> h/s </label><br>
+                    <label> Simulation speed: <span id='speed-value'>1</span> h/s</label><br>
                     <input type="range" id="speed-slider" min="1" max="24" step="1" value="1">
                     </center>
                     <br>
@@ -34,20 +33,20 @@
                         <form id="orbit-form" method="post">
                             {% csrf_token %} <!-- Django CSRF token -->
                             <label>Semi-major axis (km) </label><br>
-                            <input type="range" id="orbitAxisSlider" min="6531" max="50000" step="1" value="12345">
-                            <input id="orbitAxisValue" name="orbitAxisValue" value="12345"></input>
+                            <input type="range" id="orbit-axis-slider" min="6531" max="50000" step="1" value="12345">
+                            <input id="orbit-axis-value" name="orbit-axis-value" value="12345"></input>
                             
                             <br>
                             <label>Eccentricity </label><br>
-                            <input type="range" id="orbitEccSlider" min="0" max="0.673" step="0.001" value="0.420">
-                            <input id="orbitEccValue" name="orbitEccValue" value="0.420"></input>
+                            <input type="range" id="orbit-ecc-slider" min="0" max="0.673" step="0.001" value="0.420">
+                            <input id="orbit-ecc-value" name="orbit-ecc-value" value="0.420"></input>
                             <br>
                             <label>Argument of periapsis (°) </label><br>
-                            <input type="range" id="orbitArgSlider" min="0" max="359" step="1" value="69">
-                            <input id="orbitArgValue" name="orbitArgValue" value="69"></input>
+                            <input type="range" id="orbit-arg-slider" min="0" max="359" step="1" value="69">
+                            <input id="orbit-arg-value" name="orbit-arg-value" value="69"></input>
 
                             <br><br>
-                            <center><input id="orbit-submit-btn" type="submit" value="Start Simulation"></center>
+                            <center><input id="orbit-submit-btn" type="submit" value="Start simulation"></center>
                         </form>
                     </div>
                     <div id="maneuver-form-container" style="display: none;">
@@ -72,6 +71,8 @@
                 } else {
                     simulation.start();
                 }
+            } else {
+                window.onload = document.getElementById("orbit-submit-btn").click(); //initial simulation
             }
         });
 
@@ -110,8 +111,8 @@
 
         //syncs slider and value next to it
         function syncSliderAndInput(id) {
-            const slider = document.getElementById(id + "Slider");
-            const value = document.getElementById(id + "Value");
+            const slider = document.getElementById(id + "-slider");
+            const value = document.getElementById(id + "-value");
 
             slider.addEventListener('input', () => {
                 value.value = slider.value;
@@ -122,18 +123,18 @@
             });
 
             value.addEventListener('blur', () => {
-                clamp(id)
+                clamp(id);
             });
         }
 
         // restricts value so it doesn't go out of bounds
         function clamp(id) {
-            const slider = document.getElementById(id + "Slider");
-            const value = document.getElementById(id + "Value");
-            const min = parseFloat(document.getElementById(id + "Slider").min);
-            const max = parseFloat(document.getElementById(id + "Slider").max);
+            const slider = document.getElementById(id + "-slider");
+            const value = document.getElementById(id + "-value");
+            const min = parseFloat(document.getElementById(id + "-slider").min);
+            const max = parseFloat(document.getElementById(id + "-slider").max);
 
-            if (id == "orbitArg") { //angle periodicity
+            if (id == "orbit-arg") { //angle periodicity
                 let angle = parseFloat(value.value) % 360;
                 angle = angle >= 0 ? angle : 360 + angle;
                 value.value = angle;
@@ -148,24 +149,24 @@
             }
         }
 
-        const sliderInputIds = ["orbitEcc", "orbitAxis", "orbitArg"];
+        const sliderInputIds = ["orbit-ecc", "orbit-axis", "orbit-arg"];
         sliderInputIds.forEach((id) => {
             syncSliderAndInput(id);
         });
 
         // change eccentricity max so that periapsis is at least bigger than earth's radius + 160km which is the lowest altitude a satellite can be at
         function changeEccMax() {
-            orbitAxisValue = document.getElementById("orbitAxisValue").value;
+            orbitAxisValue = document.getElementById("orbit-axis-value").value;
             eccMax = 1 - (EARTH_RADIUS + 160)/orbitAxisValue
-            document.getElementById("orbitEccSlider").max = Math.floor(eccMax * 1000) / 1000;
-            clamp("orbitEcc");
+            document.getElementById("orbit-ecc-slider").max = Math.floor(eccMax * 1000) / 1000;
+            clamp("orbit-ecc");
         }
 
-        document.getElementById("orbitAxisSlider").addEventListener('input', () => {
+        document.getElementById("orbit-axis-slider").addEventListener('input', () => {
             changeEccMax();
         });
 
-        document.getElementById("orbitAxisValue").addEventListener('blur', () => {
+        document.getElementById("orbit-axis-value").addEventListener('blur', () => {
             changeEccMax();
         });
 

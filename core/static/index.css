@@ -7,16 +7,6 @@ body {
     font-weight: 550;
     text-align: center;
     margin: 10px;
-    margin-bottom: -5px;
-}
-
-#credit {
-    font-size: 15px;
-    font-family: Courier New;
-    margin-bottom: 2px;
-    border-radius:2px;
-    padding-right: 2px;
-    padding-left: 2px;
 }
 
 #credit:hover {
@@ -110,12 +100,11 @@ body {
     padding: 5px;
 }
 
-#orbitAxisValue, #orbitEccValue, #orbitArgValue {
+#orbit-axis-value, #orbit-ecc-value, #orbit-arg-value {
     width: 100px;
 }
 
 #info {
-    display: none;
     width: 850px;
     min-width: 850px; /* canvas width + right-panel min-width */
     border: 2px solid black;

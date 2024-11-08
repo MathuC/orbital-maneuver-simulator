@@ -10,9 +10,9 @@ def home(request):
 
 @require_POST
 def submit_orbit_form(request):
-    axis = request.POST.get('orbitAxisValue')
-    ecc = request.POST.get('orbitEccValue')
-    arg = request.POST.get('orbitArgValue')
+    axis = request.POST.get('orbit-axis-value')
+    ecc = request.POST.get('orbit-ecc-value')
+    arg = request.POST.get('orbit-arg-value')
     processed_data = process_orbit_data(axis, ecc, arg)
     return JsonResponse(processed_data)
 

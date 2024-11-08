@@ -5,7 +5,7 @@ function submitOrbitForm(event) {
         // loading screen will be a 3D animation of big earth and satellite orbiting it but coming close to us and going behind earth
 
         // so the values aren't out of bounds
-        const orbitSliderInputIds = ["orbitEcc", "orbitAxis", "orbitArg"];
+        const orbitSliderInputIds = ["orbit-ecc", "orbit-axis", "orbit-arg"];
         orbitSliderInputIds.forEach((id) => {
             clamp(id);
         });
