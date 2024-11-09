@@ -19,24 +19,23 @@ let k = 50;
 class Simulation {
 
     constructor(semiMajorAxis, semiMinorAxis, focalDistance, e, periapsis, argumentOfPeriapsis, maxLength, orbitalPeriod) {
-        speedSlider.value = 1;
-        speedValue.innerHTML = "1 h/s";
-
         this.animation = null;
         let kmPerPixel = maxLength/500;
         this.isRunning = false;
-        this.speedMultiplier = 1;
+        this.speedMultiplier = parseInt(speedSlider.value);
         this.scale = Math.floor(maxLength/5) + " km";
         this.showOrbitalPath  = orbitalPathCheckbox.checked;
         this.showVelocity = velocityCheckbox.checked;
         this.showAcceleration = accelerationCheckbox.checked;
+        this.maxVectorSize = 150;
 
         // orbit 
         this.argumentOfPeriapsis = argumentOfPeriapsis;
         this.orbitalPeriod = orbitalPeriod;
         this.orbitSemiMajorAxis = semiMajorAxis/kmPerPixel;
         this.orbitSemiMinorAxis = semiMinorAxis/kmPerPixel;
-        this.focalDistance = focalDistance/kmPerPixel;
+        this.orbitFocalDistance = focalDistance/kmPerPixel;
+        this.orbitPeriapsis = periapsis/kmPerPixel;
 
         // stars
         this.stars = [];
@@ -52,18 +51,39 @@ class Simulation {
 
         // satellite
         this.satLength = 35;
-        this.satTrueAnomalie = Math.PI;
+        this.satTrueAnomalie = 0;
+        // polar function describing orbital path - Kepler's first law
+        this.satRadius = function(theta) {
+            return (this.orbitSemiMajorAxis * (1 - e**2))/(1 + e * Math.cos(theta));
+        }
         this.satPosition = function(theta) {
-            let radius = (this.orbitSemiMajorAxis * (1 - e**2))/(1 + e * Math.cos(theta)); //polar function describing orbital path from kepler's first law
-            return [-Math.cos(theta) * radius - this.focalDistance, Math.sin(theta) * radius];
+            let radius = this.satRadius(theta);
+            return [Math.cos(theta) * radius + this.orbitFocalDistance, Math.sin(theta) * radius];
         }
 
         this.velocity = function(theta) {
-
+            let radius = this.satRadius(theta);
+            let velocityFactor = Math.sqrt(2/radius - 1/this.orbitSemiMajorAxis);  // Proportional to true speed - Kepler's third law
+            let maxVelocityFactor = Math.sqrt(2/this.orbitPeriapsis - 1/this.orbitSemiMajorAxis); // when radius is equal to periapsis, speed will be the greatest
+            let velocityRatio = velocityFactor/maxVelocityFactor;
+            let [x,y] = this.satPosition(theta);
+            let m = -((this.orbitSemiMinorAxis ** 2) * x)/((this.orbitSemiMajorAxis ** 2) * y); // slope of the velocity vector
+            let velocityRatioX = velocityRatio/(Math.sqrt(1 + m**2)); 
+            if (theta % (2 * Math.PI) < Math.PI) { // determining x's direction in the orbit
+                velocityRatioX = -velocityRatioX;
+            }
+            let velocityRatioY = m * velocityRatioX;
+            return [velocityRatioX, velocityRatioY];
         }
 
         this.acceleration = function(theta) {
-
+            let radius = this.satRadius(theta);
+            let accelerationFactor = 1/(radius ** 2); // Proportional to true acceleration magnitude - Newton's law of universal gravitation
+            let maxAccelerationFactor = 1/(this.orbitPeriapsis ** 2); // When radius will be equal to periapsis, acceleration will be the greatest
+            let accelerationRatio = accelerationFactor/maxAccelerationFactor;
+            let accelerationRatioX = accelerationRatio * Math.cos(theta + Math.PI);
+            let accelerationRatioY = accelerationRatio * Math.sin(theta + Math.PI);
+            return [accelerationRatioX, accelerationRatioY];
         }
         
     }
@@ -121,7 +141,6 @@ class Simulation {
         ctx.drawImage(satImg, -this.satLength/2, -this.satLength/2, this.satLength, this.satLength);
         ctx.restore();
 
-
         // scale
         const scaleX = 490;
         ctx.beginPath(); 
@@ -134,7 +153,7 @@ class Simulation {
         ctx.fillStyle = "white";
         ctx.fillText(this.scale, scaleX + 50, 25); 
         
-        // speed scale
+        // simulation speed scale
         const speedScaleX = 435;
         const speedScaleY = 25;
         ctx.font = "16px Courier New";
@@ -145,22 +164,45 @@ class Simulation {
         } else {
             ctx.fillText(this.speedMultiplier + " h/s", speedScaleX, speedScaleY); 
         }
+
+        //draw vector: line and a arrow head
+        function drawVector(fromX, fromY, toX, toY, color, argumentOfPeriapsis) {
+            ctx.save();
+            ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.rotate(-argumentOfPeriapsis);
+            let headLen = 10;
+            let dx = toX - fromX;
+            let dy = toY - fromY;
+            let angle = Math.atan2(dy, dx);
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY- headLen * Math.sin(angle - Math.PI / 6));
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
+            ctx.lineWidth = 2; 
+            ctx.stroke();
+            ctx.restore();
+        }
         
+        // velocity vector
+        if (this.showVelocity){
+            let [velocityStartX, velocityStartY] = this.satPosition(this.satTrueAnomalie);
+            let [velocityEndX, velocityEndY] = [velocityStartX + this.maxVectorSize * this.velocity(this.satTrueAnomalie)[0], velocityStartY + this.maxVectorSize * this.velocity(this.satTrueAnomalie)[1]]
+            drawVector(velocityStartX, velocityStartY, velocityEndX, velocityEndY, "blue", this.argumentOfPeriapsis);
+        }
 
-        //border
-        /*
-        ctx.save();
-        ctx.beginPath(); // Start a new path
-        ctx.strokeStyle = "white";
-        ctx.lineWidth = 1;
-        ctx.strokeRect(50, 50, 500, 500);
-        ctx.restore();
-        */
-
+        // acceleration vector
+        if (this.showAcceleration){
+            let [accelerationStartX, accelerationStartY] = this.satPosition(this.satTrueAnomalie);
+            let [accelerationEndX, accelerationEndY] = [accelerationStartX + this.maxVectorSize * this.acceleration(this.satTrueAnomalie)[0], accelerationStartY + this.maxVectorSize * this.acceleration(this.satTrueAnomalie)[1]]
+            drawVector(accelerationStartX, accelerationStartY, accelerationEndX, accelerationEndY, "red", this.argumentOfPeriapsis);
+        }
+        
         // angle increments for next animation frame
         this.earthArg -= this.speedMultiplier * 2 * Math.PI/(100 * 24);
         this.satTrueAnomalie += this.speedMultiplier * 36 * 2 * Math.PI/(this.orbitalPeriod);
-
     }
 
     start() {
