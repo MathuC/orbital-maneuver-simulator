@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=0.4" /> <!-- initial-scale=0.4 works better for mobile and desktop -->
+    <title>
+        Orbital Maneuver Simulator
+    </title>
+    <link rel="icon" type="image/x-icon" href="{% static 'img/satellite.png' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'index.css' %}">
+  </head>
+  <body>
+    <h3 id="title">ORBITAL MANEUVER SIMULATOR</h3>
+    <div id="container">
+        <div id="top-container">
+            <canvas id="canvas" width="600" height="600"></canvas> <!-- You need to put the width and height here, not the CSS or canvas is blurry -->
+            <div id="right-panel">
+                <div id="toggles">
+                    <center><button id="play-pause-btn">&#9654;</button><br></center>
+                    <label id="speed-label"> Simulation speed: <span id='speed-value'>1 h/s</span></label><br>
+                    <center><input type="range" id="speed-slider" min="1" max="24" step="1" value="1"></center>
+                    <input id="orbital-path-checkbox" class="checkboxes" type="checkbox" checked><label style="padding-left: 5px;"> Orbital path</label><br>
+                    <input id="velocity-checkbox" class="checkboxes" type="checkbox" checked><label style="padding-left: 5px; color:blue; font-size: 16px; font-weight: 900;"> \( \vec{v} \) </label><br>
+                    <input id="acceleration-checkbox" class="checkboxes" type="checkbox" checked><label style="padding-left: 5px; color:red; font-size: 16px; font-weight: 900;"> \( \vec{a} \) </label><br>
+                </div>
+                    <div id="tabs">
+                        <span id="orbit-tab-btn" class="active-tab" onclick="handleOrbitTabClick()">Orbit</span> 
+                        <span id="maneuver-tab-btn" onclick="handlemaneuverTabClick()">Orbital maneuver</span>
+                        <span id="filler-tab-btn"></span>
+                    </div>
+                    <div id="orbit-form-container">
+                        <form id="orbit-form" method="post">
+                            {% csrf_token %} <!-- Django CSRF token -->
+                            <label>Semi-major axis (km) </label><br>
+                            <input type="range" id="orbit-axis-slider" min="6531" max="50000" step="1" value="12345">
+                            <input id="orbit-axis-value" name="orbit-axis-value" value="12345"></input>
+                            
+                            <br>
+                            <label>Eccentricity </label><br>
+                            <input type="range" id="orbit-ecc-slider" min="0" max="0.673" step="0.001" value="0.420">
+                            <input id="orbit-ecc-value" name="orbit-ecc-value" value="0.420"></input>
+                            <br>
+                            <label>Argument of periapsis (°) </label><br>
+                            <input type="range" id="orbit-arg-slider" min="0" max="359" step="1" value="69">
+                            <input id="orbit-arg-value" name="orbit-arg-value" value="69"></input>
+
+                            <br><br>
+                            <center><input id="orbit-submit-btn" type="submit" value="Start simulation"></center>
+                        </form>
+                    </div>
+                    <div id="maneuver-form-container" style="display: none;">
+                        <form id="maneuver-form" method="post">
+                            Coming soon...
+                        </form>
+                    </div>
+            </div>
+        </div>
+        <div id="info"> </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script>
+        // MathJax config for velocity and acceleration vectors
+        window.MathJax = {
+            tex: {
+              inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+              fontCache: 'global'
+            }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <script src="{% static 'main.js' %}"></script>
+    <script src="{% static 'canvas.js' %}"></script>
+    <script src="{% static 'submitForms.js' %}"></script>
+    <script>
+        // initial simulation
+        const earthImg = new Image();
+        const satImg = new Image();
+        earthImg.src = "{% static 'img/earth.png' %}";
+        earthImg.onload = () => {
+            satImg.src = "{% static 'img/satellite.png' %}";
+        };
+        satImg.onload = () => {
+            window.onload = document.getElementById("orbit-submit-btn").click(); //initial simulation
+        };
+    
+    </script>
+  </body>
+</html>

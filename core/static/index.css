@@ -1,0 +1,122 @@
+body {
+    font-size: 14px;
+}
+
+#title {
+    font-family: Courier New;
+    font-weight: 550;
+    text-align: center;
+    margin: 20px;
+}
+
+#container {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* changed the flex direction to column so align-items which would center items vertically, centers it horizontally */
+}
+
+#top-container {
+    display: flex;
+    justify-content: center;  /* Centers horizontally */
+    /* align-items: center; */     /* Centers vertically */
+}
+
+#canvas {
+    background-color: black;
+}
+
+#right-panel {
+    min-width: 250px;
+    border: 2px solid black;
+}
+
+/* toggles */
+#toggles {
+    border-bottom: 2px solid black;
+    padding: 5px;
+}
+
+#play-pause-btn {
+    margin-top: 5px;
+    font-size: 20px;
+    width: 40px;
+    margin-bottom: 10px;
+}
+
+#speed-label {
+    margin-left: 45px;
+}
+
+.checkboxes {
+    margin-left: 45px;
+    transform: scale(1.2);
+}
+
+#tabs {
+    display: flex;
+    font-size: 16px;
+}
+
+#orbit-tab-btn {
+    background-color: rgb(215, 215, 215);
+    border: 1px solid black;
+    padding: 5px;
+    border-left: none;
+    border-top: none;
+    cursor: pointer;
+}
+
+#maneuver-tab-btn {
+    background-color: rgb(215, 215, 215);
+    border: 1px solid black;
+    padding: 5px;
+    display: inline-block;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    cursor: pointer;
+}
+
+/* When the tab is clicked */
+#orbit-tab-btn.active-tab, #maneuver-tab-btn.active-tab {
+    background-color: white;
+    border-bottom: none;
+}
+
+#filler-tab-btn {
+    background-color: rgb(215, 215, 215);
+    border: 1px solid black;
+    padding: 5px;
+    display: inline-block;
+    border-top: none;
+    border-right: none;
+    width: 65px;
+}
+
+#orbit-form-container, #maneuver-form-container {
+    border: 1px solid black;
+    border-right: none;
+    border-left: none;
+    border-bottom: none;
+    border-top: none;
+    padding: 5px;
+}
+
+#orbit-axis-value, #orbit-ecc-value, #orbit-arg-value {
+    width: 100px;
+}
+
+#info {
+    font-family: Courier New;
+    width: 850px;
+    min-width: 850px; /* canvas width + right-panel min-width */
+    border: 2px solid black;
+    border-top: none;
+    padding: 5px;
+}
+
+#credit {
+    font-family: Arial;
+    font-size: 12px;
+    padding-top: 10px;
+}
