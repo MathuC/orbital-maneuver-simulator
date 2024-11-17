@@ -17,7 +17,7 @@ def submit_orbit_form(request):
     ecc = request.POST.get('orbit-ecc-value')
     arg = request.POST.get('orbit-arg-value')
     processed_data = process_orbit_data(axis, ecc, arg)
-    time.sleep(2) # to test loading screen
+    time.sleep(3) # to test loading screen
     return JsonResponse(processed_data)
 
 

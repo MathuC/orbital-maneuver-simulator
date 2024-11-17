@@ -6,7 +6,9 @@ document.getElementById("play-pause-btn").addEventListener('click', () => {
         if (simulation.isRunning) {
             simulation.stop();
         } else {
-            simulation.start();
+            if (!loadingScreen.isRunning) {
+                simulation.start();
+            }
         }
     } else {
         window.onload = document.getElementById("orbit-submit-btn").click(); //initial simulation
