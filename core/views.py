@@ -3,7 +3,6 @@ from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from .utils import process_orbit_data
 from django.views.decorators.csrf import csrf_exempt
-import time
 
 # Create your views here.
 
