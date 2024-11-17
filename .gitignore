@@ -1,4 +1,4 @@
-private
+.private
 orbital_maneuver_simulator/settings.py
 .DS_Store
 **/__pycache__/
