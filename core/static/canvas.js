@@ -17,7 +17,7 @@ let EARTH_DIAMETER = 6371 * 2; // Earth radius is 6371km
 class Simulation {
 
     constructor(semiMajorAxis, semiMinorAxis, focalDistance, e, periapsis, apoapsis, argumentOfPeriapsis, orbitalPeriod, maxLength) {
-        this.animation = null;
+        this.animation;
         this.time = 0;
         let kmPerPixel = maxLength/500;
         this.isRunning = false;
@@ -246,14 +246,55 @@ class Simulation {
     }
 
     start() {
-        this.animation = setInterval(this.draw.bind(this), 10); // bind(this) is used so this in this.draw doesn't refer to global context while inside setInterval
-        this.isRunning = true;
-        document.getElementById("play-pause-btn").innerHTML = "&#10074;&#10074;";
+        if (this.isRunning == false) {
+            this.draw(); // first frame, setInterval will wait interval time before starting to draw
+            this.animation = setInterval(this.draw.bind(this), 10); // bind(this) is used so this in this.draw doesn't refer to global context while inside setInterval
+            this.isRunning = true;
+            document.getElementById("play-pause-btn").innerHTML = "&#10074;&#10074;";
+        }
     }
 
     stop() {
-        clearInterval(this.animation);
-        this.isRunning = false;
-        document.getElementById("play-pause-btn").innerHTML = "&#9654;";
+        if (this.isRunning == true) {
+            clearInterval(this.animation);
+            this.isRunning = false;
+            document.getElementById("play-pause-btn").innerHTML = "&#9654;";
+        }
     }
 }
+
+// singleton
+const loadingScreen = new (class {
+    constructor() {
+        this.time = 0;
+        this.animation;
+        this.isRunning = false;
+    }
+
+    draw() {
+        ctx.clearRect(0, 0, 600, 600);
+        ctx.font = "40px Courier New";
+        ctx.textAlign = "left";
+        ctx.fillStyle = "white";
+        ctx.fillText("loading"+".".repeat(this.time % 3 + 1), canvas.width/2 - 90, canvas.height/2); 
+        this.time++;
+    }
+    
+    start() {
+        if (this.isRunning == false) {
+            this.draw(); // first frame
+            this.animation = setInterval(this.draw.bind(this), 500);
+            this.isRunning = true;
+            document.getElementById("orbit-submit-btn").disabled = true;
+        }
+    }
+
+    stop() {
+        if (this.isRunning == true) {
+            clearInterval(this.animation);
+            this.time = 0;
+            this.isRunning = false;
+            document.getElementById("orbit-submit-btn").disabled = false;
+        }
+    }
+});
