@@ -13,7 +13,7 @@ services:
     volumes:
       - static:/static
     ports:
-      - "80:80" # exposing port 80 inside the container to port 443 so that https only shows the website
+      - "8080:80" # exposing port 80 inside the container to port 443 so that https only shows the website
     depends_on:
       - django_gunicorn
 
