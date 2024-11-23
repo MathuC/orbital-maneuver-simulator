@@ -1,8 +1,11 @@
 let canvas = document.getElementById('canvas');
 let ctx = canvas.getContext("2d");
 
+const G = 6.67430e-11
+const EARTH_DIAMETER = 6371 * 2;
+const EARTH_MASS = 5.972e24;
+
 let simulation;
-let EARTH_DIAMETER = 6371 * 2; // Earth radius is 6371km
 
 /** 
  * redraw every 10 ms
@@ -12,7 +15,6 @@ let EARTH_DIAMETER = 6371 * 2; // Earth radius is 6371km
  * default: counter clockwise orbit
  * default: 1h/s
  * argument of periapsis is the angle between the semi major axis and x axis
- * everytime start simulation button is clicked an instance of this class is created 
  */ 
 class OrbitSimulation {
 
@@ -298,3 +300,33 @@ const loadingScreen = new (class {
         }
     }
 });
+
+/**
+ * If startArg and endArg are false, the orbit will be part of an OrbitSimulation. 
+ * If one of them is true, the orbit will be part of a ManeuverSimulation
+ */
+class Orbit {
+    constructor(semiMajorAxis, e, argumentOfPeriapsis, startArg, endArg) {
+        this.semiMajorAxis = semiMajorAxis;
+        this.semiMinorAxis = semiMajorAxis * ((1 - (e ** 2)) ** 0.5);
+        this.e = e;
+        this.argumentOfPeriapsis = argumentOfPeriapsis;
+        this.periapsis = semiMajorAxis * (1 - e);
+        this.apoapsis =  semiMajorAxis * (1 + e);
+        this.focalDistance = (semiMajorAxis ** 2 - semiMinorAxis ** 2) ** 0.5;
+        this.orbitalPeriod = 2 * Math.PI * ((((semiMajorAxis * 1000) ** 3)/(G * EARTH_MASS))) ** 0.5;
+        if (startArg && endArg) {
+            this.type == "transfer";
+            this.startArg = startArg;
+            this.endArg = endArg;
+        } else if (endArg && !startArg) {
+            this.type == "start";
+            this.endArg = endArg;
+        } else if (startArg && !endArg) {
+            this.type == "end";
+            this.startArg = startArg;
+        } else {
+            this.type == "constant";
+        }
+    }
+}
