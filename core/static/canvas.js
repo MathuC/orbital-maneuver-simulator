@@ -14,7 +14,7 @@ let EARTH_DIAMETER = 6371 * 2; // Earth radius is 6371km
  * argument of periapsis is the angle between the semi major axis and x axis
  * everytime start simulation button is clicked an instance of this class is created 
  */ 
-class Simulation {
+class OrbitSimulation {
 
     constructor(semiMajorAxis, semiMinorAxis, focalDistance, e, periapsis, apoapsis, argumentOfPeriapsis, orbitalPeriod, maxLength) {
         this.animation;

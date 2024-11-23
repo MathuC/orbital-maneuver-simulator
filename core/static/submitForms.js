@@ -24,7 +24,7 @@ function submitOrbitForm(event) {
         })
         .then(response => response.json())
         .then(data => {
-            simulation = new Simulation(data.semi_major_axis, data.semi_minor_axis, data.focal_distance, data.eccentricity, data.periapsis, 
+            simulation = new OrbitSimulation(data.semi_major_axis, data.semi_minor_axis, data.focal_distance, data.eccentricity, data.periapsis, 
                 data.apoapsis, data.argument_of_periapsis, data.orbital_period, data.max_length
             );
             generateInfo(data.semi_major_axis, data.semi_minor_axis, data.focal_distance, data.eccentricity, data.periapsis, data.apoapsis, 
