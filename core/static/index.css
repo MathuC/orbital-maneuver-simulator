@@ -75,6 +75,7 @@ body {
     border-left: none;
     border-right: none;
     cursor: pointer;
+    width: 135px; /* So the button does not take two lines */
 }
 
 /* When the tab is clicked */
@@ -90,7 +91,7 @@ body {
     display: inline-block;
     border-top: none;
     border-right: none;
-    width: 65px;
+    width: 64px;
 }
 
 #orbit-form-container, #maneuver-form-container {
