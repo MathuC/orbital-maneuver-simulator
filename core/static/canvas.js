@@ -302,7 +302,7 @@ const loadingScreen = new (class {
 });
 
 /**
- * If startArg and endArg are false, the orbit will be part of an OrbitSimulation. 
+ * If startArg and endArg are false, the orbit will be constant and part of an OrbitSimulation. 
  * If one of them is true, the orbit will be part of a ManeuverSimulation
  */
 class Orbit {
@@ -319,10 +319,10 @@ class Orbit {
             this.type == "transfer";
             this.startArg = startArg;
             this.endArg = endArg;
-        } else if (endArg && !startArg) {
+        } else if (endArg) {
             this.type == "start";
             this.endArg = endArg;
-        } else if (startArg && !endArg) {
+        } else if (startArg) {
             this.type == "end";
             this.startArg = startArg;
         } else {

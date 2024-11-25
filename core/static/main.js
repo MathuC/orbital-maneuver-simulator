@@ -166,7 +166,7 @@ document.getElementById("orbit-axis-value").addEventListener('blur', () => {
 changeEccMax();
 
 // info
-function generateInfo(semiMajorAxis, semiMinorAxis, focalDistance, e, periapsis, apoapsis, 
+function generateOrbitInfo(semiMajorAxis, semiMinorAxis, focalDistance, e, periapsis, apoapsis, 
     argumentOfPeriapsis, orbitalPeriod) 
 {   
     const info = document.getElementById("info");
