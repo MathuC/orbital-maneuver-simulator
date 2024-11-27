@@ -31,14 +31,14 @@ class OrbitSimulation {
 
         // orbit 
         this.orbit = orbit;
-        this.kmPerPixel = maxLength/500;
+        const kmPerPixel = maxLength/500;
         // contains orbit distances but converted in pixels for the simulation
         this.pixelOrbit = {
-            semiMajorAxis: orbit.semiMajorAxis/this.kmPerPixel,
-            semiMinorAxis: orbit.semiMinorAxis/this.kmPerPixel,
-            focalDistance: orbit.focalDistance/this.kmPerPixel,
-            periapsis: orbit.periapsis/this.kmPerPixel,
-            apoapsis: orbit.apoapsis/this.kmPerPixel
+            semiMajorAxis: orbit.semiMajorAxis/kmPerPixel,
+            semiMinorAxis: orbit.semiMinorAxis/kmPerPixel,
+            focalDistance: orbit.focalDistance/kmPerPixel,
+            periapsis: orbit.periapsis/kmPerPixel,
+            apoapsis: orbit.apoapsis/kmPerPixel
         }
 
         // stars
@@ -49,9 +49,9 @@ class OrbitSimulation {
 
         // earth
         this.earthArg = 0;
-        this.earthDiameter = EARTH_DIAMETER/this.kmPerPixel;
-        this.earthX = (orbit.semiMajorAxis - orbit.periapsis) * Math.cos(orbit.argumentOfPeriapsis)/this.kmPerPixel;
-        this.earthY = -(orbit.semiMajorAxis - orbit.periapsis) * Math.sin(orbit.argumentOfPeriapsis)/this.kmPerPixel;
+        this.earthDiameter = EARTH_DIAMETER/kmPerPixel;
+        this.earthX = (orbit.semiMajorAxis - orbit.periapsis) * Math.cos(orbit.argumentOfPeriapsis)/kmPerPixel;
+        this.earthY = -(orbit.semiMajorAxis - orbit.periapsis) * Math.sin(orbit.argumentOfPeriapsis)/kmPerPixel;
 
         // velocity vector
         this.velocity = function() {
