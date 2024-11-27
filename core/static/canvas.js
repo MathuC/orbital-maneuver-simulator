@@ -307,24 +307,24 @@ const loadingScreen = new (class {
  */
 class Orbit {
     constructor(semiMajorAxis, e, argumentOfPeriapsis, startArg, endArg) {
-        this.semiMajorAxis = semiMajorAxis;
-        this.semiMinorAxis = semiMajorAxis * ((1 - (e ** 2)) ** 0.5);
-        this.e = e;
-        this.argumentOfPeriapsis = argumentOfPeriapsis;
-        this.periapsis = semiMajorAxis * (1 - e);
-        this.apoapsis =  semiMajorAxis * (1 + e);
-        this.focalDistance = (semiMajorAxis ** 2 - semiMinorAxis ** 2) ** 0.5;
-        this.orbitalPeriod = 2 * Math.PI * ((((semiMajorAxis * 1000) ** 3)/(G * EARTH_MASS))) ** 0.5;
+        this.semiMajorAxis = parseInt(semiMajorAxis);
+        this.e =  parseInt(e);
+        this.argumentOfPeriapsis =  parseInt(argumentOfPeriapsis);
+        this.semiMinorAxis = this.semiMajorAxis * ((1 - (e ** 2)) ** 0.5);
+        this.periapsis = this.semiMajorAxis * (1 - e);
+        this.apoapsis =  this.semiMajorAxis * (1 + e);
+        this.focalDistance = (this.semiMajorAxis ** 2 - this.semiMinorAxis ** 2) ** 0.5;
+        this.orbitalPeriod = 2 * Math.PI * ((((this.semiMajorAxis * 1000) ** 3)/(G * EARTH_MASS))) ** 0.5;
         if (startArg && endArg) {
             this.type == "transfer";
-            this.startArg = startArg;
-            this.endArg = endArg;
+            this.startArg =  parseInt(startArg);
+            this.endArg =  parseInt(endArg);
         } else if (endArg) {
             this.type == "start";
-            this.endArg = endArg;
+            this.endArg =  parseInt(endArg);
         } else if (startArg) {
             this.type == "end";
-            this.startArg = startArg;
+            this.startArg =  parseInt(startArg);
         } else {
             this.type == "constant";
         }

@@ -4,7 +4,11 @@ function submitOrbitForm(event) {
     event.preventDefault(); // Prevent the default form submission and page reload
 
     if (!loadingScreen.isRunning) {
+
         const formData = new FormData(event.target); // Get form data
+
+        orbitFormValidator(formData);
+
         let orbit = new Orbit(formData.get("orbit-axis-value"), formData.get("orbit-ecc-value"), formData.get("orbit-arg-value"));
 
         // stop simulation and start loading screen
@@ -12,12 +16,6 @@ function submitOrbitForm(event) {
             simulation.stop();
         }
         loadingScreen.start();
-
-        // so the values aren't out of bounds
-        const orbitSliderInputIds = ["orbit-ecc", "orbit-axis", "orbit-arg"];
-        orbitSliderInputIds.forEach((id) => {
-            clamp(id);
-        });
  
         fetch('/submit-orbit-form/', {
             method: 'POST',
@@ -38,4 +36,29 @@ function submitOrbitForm(event) {
 
 function submitManeuverForm(event) {
 
+}
+
+function orbitFormValidator(formData) {
+    let regexpCheck = /^[0-9]+\.?([0-9]+)?$/.test(formData.get("orbit-axis-value")) && 
+        /^[0-9]+\.?([0-9]+)?$/.test(formData.get("orbit-ecc-value")) && 
+        /^[0-9]+\.?([0-9]+)?$/.test(formData.get("orbit-arg-value")); 
+    let emptyCheck = formData.get("orbit-axis-value") != '' && formData.get("orbit-ecc-value") != '' && 
+        formData.get("orbit-arg-value") != '';
+
+    if (!(regexpCheck && emptyCheck)) {
+        // if invalid inputs, everything is put back to default
+        let ids = ["orbit-axis", "orbit-ecc", "orbit-arg"];
+        let defaultVals = ["12345", "0.420", "69"];
+        ids.forEach((id, n) => {
+            formData.set(id + "-value", defaultVals[n]);
+            document.getElementById(id + "-value").value = defaultVals[n];
+            document.getElementById(id + "-slider").value = defaultVals[n];
+        });
+    }
+
+    if (!emptyCheck) {
+        alert("Input cannot be empty.");
+    } else if (!regexpCheck) {
+        alert("Invalid input! Only digits and one period are allowed. ");
+    }
 }

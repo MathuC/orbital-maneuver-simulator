@@ -120,7 +120,7 @@ function syncSliderAndInput(id) {
     });
 }
 
-// restricts value so it doesn't go out of bounds
+// restricts value so it doesn't go out of bounds and puts values to min when inputs are empty
 function clamp(id) {
     const slider = document.getElementById(id + "-slider");
     const value = document.getElementById(id + "-value");
@@ -128,16 +128,23 @@ function clamp(id) {
     const max = parseFloat(document.getElementById(id + "-slider").max);
 
     if (id == "orbit-arg") { //angle periodicity
-        let angle = parseFloat(value.value) % 360;
-        angle = angle >= 0 ? angle : 360 + angle;
-        value.value = angle;
-        slider.value = value.value;
+        if (value.value == '') {
+            value.value = 0;
+            slider.value = 0;
+        } else {
+            let angle = parseFloat(value.value) % 360;
+            angle = angle >= 0 ? angle : 360 + angle;
+            value.value = angle;
+            slider.value = angle;
+        }
     } else {
-        if (parseFloat(value.value) < min) {
+        if (parseFloat(value.value) < min || value.value == '') {
             value.value = min;
+            slider.value = min;
         }
         if (parseFloat(value.value) > max) {
             value.value = max;
+            slider.value = max;
         }
     }
 }

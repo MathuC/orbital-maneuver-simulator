@@ -2,7 +2,7 @@ import math
 import numpy as np
 
 def process_orbit_data(semi_major_axis: int, ecc: float, arg: int) -> dict:
-    semi_major_axis = int(semi_major_axis)
+    semi_major_axis = float(semi_major_axis)
     ecc = float(ecc)
     arg = math.radians(float(arg))
     G = 6.67430e-11
