@@ -166,8 +166,7 @@ document.getElementById("orbit-axis-value").addEventListener('blur', () => {
 changeEccMax();
 
 // info
-function generateOrbitInfo(semiMajorAxis, semiMinorAxis, focalDistance, e, periapsis, apoapsis, 
-    argumentOfPeriapsis, orbitalPeriod) 
+function generateOrbitInfo(orbit) 
 {   
     const info = document.getElementById("info");
     info.innerHTML = "";
@@ -183,14 +182,14 @@ function generateOrbitInfo(semiMajorAxis, semiMinorAxis, focalDistance, e, peria
         return `${hours}h ${minutes}m ${seconds}s`;
     }
     
-    createLine("Semi-major axis", semiMajorAxis, "km");
-    createLine("Semi-minor axis", Math.round(semiMinorAxis), "km");
-    createLine("Eccentricity", e);
-    createLine("Periapsis", Math.round(periapsis), "km");
-    createLine("Apoapsis", Math.round(apoapsis), "km");
-    createLine("Focal distance", Math.round(focalDistance), "km");
-    createLine("Argument of periapsis", Math.round(argumentOfPeriapsis * 180/Math.PI), "°");
-    createLine("Orbital period", formatTime(orbitalPeriod));
+    createLine("Semi-major axis", orbit.semiMajorAxis, "km");
+    createLine("Semi-minor axis", Math.round(orbit.semiMinorAxis), "km");
+    createLine("Eccentricity", orbit.e);
+    createLine("Periapsis", Math.round(orbit.periapsis), "km");
+    createLine("Apoapsis", Math.round(orbit.apoapsis), "km");
+    createLine("Focal distance", Math.round(orbit.focalDistance), "km");
+    createLine("Argument of periapsis", Math.round(orbit.argumentOfPeriapsis * 180/Math.PI), "°");
+    createLine("Orbital period", formatTime(orbit.orbitalPeriod));
 
     // credit
     info.innerHTML += '<div id="credit" style=""> To see more of my projects, visit <a href="https://mathusan.net">mathusan.net</a></div>';

@@ -5,6 +5,7 @@ function submitOrbitForm(event) {
 
     if (!loadingScreen.isRunning) {
         const formData = new FormData(event.target); // Get form data
+        let orbit = new Orbit(formData.get("orbit-axis-value"), formData.get("orbit-ecc-value"), formData.get("orbit-arg-value"));
 
         // stop simulation and start loading screen
         if (typeof simulation !== 'undefined') {
@@ -27,9 +28,7 @@ function submitOrbitForm(event) {
             simulation = new OrbitSimulation(data.semi_major_axis, data.semi_minor_axis, data.focal_distance, data.eccentricity, data.periapsis, 
                 data.apoapsis, data.argument_of_periapsis, data.orbital_period, data.max_length
             );
-            generateOrbitInfo(data.semi_major_axis, data.semi_minor_axis, data.focal_distance, data.eccentricity, data.periapsis, data.apoapsis, 
-                data.argument_of_periapsis, data.orbital_period
-            );
+            generateOrbitInfo(orbit);
             loadingScreen.stop();
             simulation.start();
         })
