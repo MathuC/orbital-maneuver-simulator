@@ -59,6 +59,6 @@ function orbitFormValidator(formData) {
     if (!emptyCheck) {
         alert("Input cannot be empty.");
     } else if (!regexpCheck) {
-        alert("Invalid input! Only digits and one period are allowed. ");
+        alert("Invalid input! Only digits and one decimal point are allowed. ");
     }
 }
