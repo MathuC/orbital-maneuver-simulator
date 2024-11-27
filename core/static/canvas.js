@@ -182,7 +182,7 @@ class OrbitSimulation {
         ctx.drawImage(satImg, -this.satLength/2, -this.satLength/2, this.satLength, this.satLength);
         ctx.restore();
 
-        //draw vector: line and a arrow head
+        // draw vector: line and a arrow head
         function drawVector(fromX, fromY, toX, toY, color, argumentOfPeriapsis) {
             ctx.save();
             ctx.translate(canvas.width/2, canvas.height/2);
