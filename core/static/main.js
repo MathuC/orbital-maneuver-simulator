@@ -155,24 +155,28 @@ sliderInputIds.forEach((id) => {
 });
 
 // change eccentricity max so that periapsis is at least bigger than earth's radius + 160km which is the lowest altitude a satellite can be at
-function changeEccMax() {
+function changeMaxEcc() {
     orbitAxisValue = parseFloat(document.getElementById("orbit-axis-value").value);
     if (!isNaN(orbitAxisValue)){
-        eccMax = 1 - (EARTH_RADIUS + 160)/orbitAxisValue;
+        eccMax = maxEcc(orbitAxisValue);
         document.getElementById("orbit-ecc-slider").max = Math.floor(eccMax * 1000) / 1000;
         clamp("orbit-ecc");
     }
 }
 
+function maxEcc(semiMajorAxis) {
+    return 1 - (EARTH_RADIUS + 160)/semiMajorAxis;
+}
+
 document.getElementById("orbit-axis-slider").addEventListener('input', () => {
-    changeEccMax();
+    changeMaxEcc();
 });
 
 document.getElementById("orbit-axis-value").addEventListener('blur', () => {
-    changeEccMax();
+    changeMaxEcc();
 });
 
-changeEccMax();
+changeMaxEcc();
 
 // info
 function generateOrbitInfo(orbit) 

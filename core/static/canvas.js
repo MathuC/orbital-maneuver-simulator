@@ -308,7 +308,7 @@ const loadingScreen = new (class {
 class Orbit {
     constructor(semiMajorAxis, e, argumentOfPeriapsis, startArg, endArg) {
         this.semiMajorAxis = parseInt(semiMajorAxis);
-        this.e =  parseInt(e);
+        this.e =  parseFloat(e);
         this.argumentOfPeriapsis =  parseInt(argumentOfPeriapsis);
         this.semiMinorAxis = this.semiMajorAxis * ((1 - (e ** 2)) ** 0.5);
         this.periapsis = this.semiMajorAxis * (1 - e);

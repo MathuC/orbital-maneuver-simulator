@@ -54,6 +54,19 @@ function orbitFormValidator(formData) {
             document.getElementById(id + "-value").value = defaultVals[n];
             document.getElementById(id + "-slider").value = defaultVals[n];
         });
+    } else {
+        // min max check
+        if (parseFloat(formData.get("orbit-axis-value")) > 50000) {
+            formData.set("orbit-axis-value", "50000");
+        } else if (parseFloat(formData.get("orbit-axis-value")) < 6531) {
+            formData.set("orbit-axis-value", "6531");
+        }
+
+        if (parseFloat(formData.get("orbit-ecc-value")) > maxEcc(formData.get("orbit-axis-value"))) {
+            formData.set("orbit-ecc-value",  maxEcc(formData.get("orbit-axis-value")));
+        } else if (parseFloat(formData.get("orbit-ecc-value")) < 0) {
+            formData.set("orbit-ecc-value",  "0");
+        }
     }
 
     if (!emptyCheck) {
