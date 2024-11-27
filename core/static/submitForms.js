@@ -9,7 +9,7 @@ function submitOrbitForm(event) {
 
         orbitFormValidator(formData);
 
-        let orbit = new Orbit(formData.get("orbit-axis-value"), formData.get("orbit-ecc-value"), formData.get("orbit-arg-value"));
+        let orbit = new Orbit(parseInt(formData.get("orbit-axis-value")), parseFloat(formData.get("orbit-ecc-value")), parseInt(formData.get("orbit-arg-value")));
 
         // stop simulation and start loading screen
         if (typeof simulation !== 'undefined') {
@@ -55,6 +55,10 @@ function orbitFormValidator(formData) {
             document.getElementById(id + "-slider").value = defaultVals[n];
         });
     } else {
+        // float to int conversion
+        formData.set("orbit-axis-value", String(parseInt(formData.get("orbit-axis-value"))));
+        formData.set("orbit-arg-value", String(parseInt(formData.get("orbit-arg-value"))));
+
         // min max check
         if (parseFloat(formData.get("orbit-axis-value")) > 50000) {
             formData.set("orbit-axis-value", "50000");

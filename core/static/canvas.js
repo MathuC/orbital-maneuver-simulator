@@ -309,23 +309,23 @@ class Orbit {
     constructor(semiMajorAxis, e, argumentOfPeriapsis, startArg, endArg) {
         this.semiMajorAxis = parseInt(semiMajorAxis);
         this.e =  parseFloat(e);
-        this.argumentOfPeriapsis =  parseInt(argumentOfPeriapsis);
-        this.semiMinorAxis = this.semiMajorAxis * ((1 - (e ** 2)) ** 0.5);
-        this.periapsis = this.semiMajorAxis * (1 - e);
-        this.apoapsis =  this.semiMajorAxis * (1 + e);
+        this.argumentOfPeriapsis = parseInt(argumentOfPeriapsis) * (Math.PI / 180); /// deg to rad
+        this.semiMinorAxis = this.semiMajorAxis * ((1 - (this.e ** 2)) ** 0.5);
+        this.periapsis = this.semiMajorAxis * (1 - this.e);
+        this.apoapsis =  this.semiMajorAxis * (1 + this.e);
         this.focalDistance = (this.semiMajorAxis ** 2 - this.semiMinorAxis ** 2) ** 0.5;
         this.orbitalPeriod = 2 * Math.PI * ((((this.semiMajorAxis * 1000) ** 3)/(G * EARTH_MASS))) ** 0.5;
         if (startArg && endArg) {
             this.type == "transfer";
-            this.startArg =  parseInt(startArg);
-            this.endArg =  parseInt(endArg);
-        } else if (endArg) {
+            this.startArg =  parseFloat(startArg);
+            this.endArg =  parseFloat(endArg);
+        } else if (endArg) { // startArg is false
             this.type == "start";
-            this.endArg =  parseInt(endArg);
-        } else if (startArg) {
+            this.endArg =  parseFloat(endArg);
+        } else if (startArg) { // endArg is false
             this.type == "end";
-            this.startArg =  parseInt(startArg);
-        } else {
+            this.startArg =  parseFloat(startArg);
+        } else { // startArg and endArg are false
             this.type == "constant";
         }
     }
