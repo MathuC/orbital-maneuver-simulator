@@ -112,7 +112,7 @@ function syncSliderAndInput(id) {
     });
 
     value.addEventListener('input', () => {
-        slider.value = value.value;
+        slider.value = value.value.replace(/\.$/, ''); // so that eg. 12345. isn't NaN
     });
 
     value.addEventListener('blur', () => {
@@ -120,7 +120,7 @@ function syncSliderAndInput(id) {
     });
 }
 
-// restricts value so it doesn't go out of bounds
+// restricts value so it doesn't go out of bounds and puts values to min when inputs are empty
 function clamp(id) {
     const slider = document.getElementById(id + "-slider");
     const value = document.getElementById(id + "-value");
@@ -128,16 +128,23 @@ function clamp(id) {
     const max = parseFloat(document.getElementById(id + "-slider").max);
 
     if (id == "orbit-arg") { //angle periodicity
-        let angle = parseFloat(value.value) % 360;
-        angle = angle >= 0 ? angle : 360 + angle;
-        value.value = angle;
-        slider.value = value.value;
+        if (value.value == '') {
+            value.value = 0;
+            slider.value = 0;
+        } else {
+            let angle = parseFloat(value.value) % 360;
+            angle = angle >= 0 ? angle : 360 + angle;
+            value.value = angle;
+            slider.value = angle;
+        }
     } else {
-        if (parseFloat(value.value) < min) {
+        if (parseFloat(value.value) < min || value.value == '') {
             value.value = min;
+            slider.value = min;
         }
         if (parseFloat(value.value) > max) {
             value.value = max;
+            slider.value = max;
         }
     }
 }
@@ -148,27 +155,31 @@ sliderInputIds.forEach((id) => {
 });
 
 // change eccentricity max so that periapsis is at least bigger than earth's radius + 160km which is the lowest altitude a satellite can be at
-function changeEccMax() {
-    orbitAxisValue = document.getElementById("orbit-axis-value").value;
-    eccMax = 1 - (EARTH_RADIUS + 160)/orbitAxisValue
-    document.getElementById("orbit-ecc-slider").max = Math.floor(eccMax * 1000) / 1000;
-    clamp("orbit-ecc");
+function changeMaxEcc() {
+    orbitAxisValue = parseFloat(document.getElementById("orbit-axis-value").value);
+    if (!isNaN(orbitAxisValue)){
+        eccMax = maxEcc(orbitAxisValue);
+        document.getElementById("orbit-ecc-slider").max = Math.floor(eccMax * 1000) / 1000;
+        clamp("orbit-ecc");
+    }
+}
+
+function maxEcc(semiMajorAxis) {
+    return 1 - (EARTH_RADIUS + 160)/semiMajorAxis;
 }
 
 document.getElementById("orbit-axis-slider").addEventListener('input', () => {
-    changeEccMax();
+    changeMaxEcc();
 });
 
 document.getElementById("orbit-axis-value").addEventListener('blur', () => {
-    changeEccMax();
+    changeMaxEcc();
 });
 
-changeEccMax();
+changeMaxEcc();
 
 // info
-
-function generateInfo(semiMajorAxis, semiMinorAxis, focalDistance, e, periapsis, apoapsis, 
-    argumentOfPeriapsis, orbitalPeriod) 
+function generateOrbitInfo(orbit) 
 {   
     const info = document.getElementById("info");
     info.innerHTML = "";
@@ -184,14 +195,14 @@ function generateInfo(semiMajorAxis, semiMinorAxis, focalDistance, e, periapsis,
         return `${hours}h ${minutes}m ${seconds}s`;
     }
     
-    createLine("Semi-major axis", semiMajorAxis, "km");
-    createLine("Semi-minor axis", Math.round(semiMinorAxis), "km");
-    createLine("Eccentricity", e);
-    createLine("Periapsis", Math.round(periapsis), "km");
-    createLine("Apoapsis", Math.round(apoapsis), "km");
-    createLine("Focal distance", Math.round(focalDistance), "km");
-    createLine("Argument of periapsis", Math.round(argumentOfPeriapsis * 180/Math.PI), "°");
-    createLine("Orbital period", formatTime(orbitalPeriod));
+    createLine("Semi-major axis", orbit.semiMajorAxis, "km");
+    createLine("Semi-minor axis", Math.round(orbit.semiMinorAxis), "km");
+    createLine("Eccentricity", orbit.e);
+    createLine("Periapsis", Math.round(orbit.periapsis), "km");
+    createLine("Apoapsis", Math.round(orbit.apoapsis), "km");
+    createLine("Focal distance", Math.round(orbit.focalDistance), "km");
+    createLine("Argument of periapsis", Math.round(orbit.argumentOfPeriapsis * 180/Math.PI), "°");
+    createLine("Orbital period", formatTime(orbit.orbitalPeriod));
 
     // credit
     info.innerHTML += '<div id="credit" style=""> To see more of my projects, visit <a href="https://mathusan.net">mathusan.net</a></div>';

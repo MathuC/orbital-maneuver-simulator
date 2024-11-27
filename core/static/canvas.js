@@ -1,8 +1,11 @@
 let canvas = document.getElementById('canvas');
 let ctx = canvas.getContext("2d");
 
+const G = 6.67430e-11
+const EARTH_DIAMETER = 6371 * 2;
+const EARTH_MASS = 5.972e24;
+
 let simulation;
-let EARTH_DIAMETER = 6371 * 2; // Earth radius is 6371km
 
 /** 
  * redraw every 10 ms
@@ -12,14 +15,12 @@ let EARTH_DIAMETER = 6371 * 2; // Earth radius is 6371km
  * default: counter clockwise orbit
  * default: 1h/s
  * argument of periapsis is the angle between the semi major axis and x axis
- * everytime start simulation button is clicked an instance of this class is created 
  */ 
-class Simulation {
+class OrbitSimulation {
 
-    constructor(semiMajorAxis, semiMinorAxis, focalDistance, e, periapsis, apoapsis, argumentOfPeriapsis, orbitalPeriod, maxLength) {
+    constructor(orbit, maxLength) {
         this.animation;
         this.time = 0;
-        let kmPerPixel = maxLength/500;
         this.isRunning = false;
         this.speedMultiplier = parseInt(speedSlider.value);
         this.scale = Math.floor(maxLength/5) + " km";
@@ -29,14 +30,16 @@ class Simulation {
         this.maxVectorSize = 150;
 
         // orbit 
-        this.orbitIsCircular = e == 0;
-        this.argumentOfPeriapsis = argumentOfPeriapsis;
-        this.e = e;
-        this.orbitalPeriod = orbitalPeriod;
-        this.orbitSemiMajorAxis = semiMajorAxis/kmPerPixel;
-        this.orbitSemiMinorAxis = semiMinorAxis/kmPerPixel;
-        this.orbitFocalDistance = focalDistance/kmPerPixel;
-        this.orbitPeriapsis = periapsis/kmPerPixel;
+        this.orbit = orbit;
+        const kmPerPixel = maxLength/500;
+        // contains orbit distances but converted in pixels for the simulation
+        this.pixelOrbit = {
+            semiMajorAxis: orbit.semiMajorAxis/kmPerPixel,
+            semiMinorAxis: orbit.semiMinorAxis/kmPerPixel,
+            focalDistance: orbit.focalDistance/kmPerPixel,
+            periapsis: orbit.periapsis/kmPerPixel,
+            apoapsis: orbit.apoapsis/kmPerPixel
+        }
 
         // stars
         this.stars = [];
@@ -47,17 +50,17 @@ class Simulation {
         // earth
         this.earthArg = 0;
         this.earthDiameter = EARTH_DIAMETER/kmPerPixel;
-        this.earthX = (semiMajorAxis - periapsis) * Math.cos(argumentOfPeriapsis)/kmPerPixel;
-        this.earthY = -(semiMajorAxis - periapsis) * Math.sin(argumentOfPeriapsis)/kmPerPixel;
+        this.earthX = (orbit.semiMajorAxis - orbit.periapsis) * Math.cos(orbit.argumentOfPeriapsis)/kmPerPixel;
+        this.earthY = -(orbit.semiMajorAxis - orbit.periapsis) * Math.sin(orbit.argumentOfPeriapsis)/kmPerPixel;
 
         // velocity vector
         this.velocity = function() {
             let theta = this.trueAnomalie();
-            let velocityFactor = Math.sqrt(2/this.satRadius(theta) - 1/this.orbitSemiMajorAxis);  // Proportional to true speed
-            let maxVelocityFactor = Math.sqrt(2/this.orbitPeriapsis - 1/this.orbitSemiMajorAxis); // when radius is equal to periapsis, speed will be the greatest
+            let velocityFactor = Math.sqrt(2/this.satRadius(theta) - 1/this.pixelOrbit.semiMajorAxis);  // Proportional to true speed
+            let maxVelocityFactor = Math.sqrt(2/this.pixelOrbit.periapsis - 1/this.pixelOrbit.semiMajorAxis); // when radius is equal to periapsis, speed will be the greatest
             let velocityRatio = velocityFactor/maxVelocityFactor;
             let [x,y] = this.satPosition();
-            let m = -((this.orbitSemiMinorAxis ** 2) * x)/((this.orbitSemiMajorAxis ** 2) * y); // slope of the velocity vector
+            let m = -((orbit.semiMinorAxis ** 2) * x)/((orbit.semiMajorAxis ** 2) * y); // slope of the velocity vector
             let velocityRatioX = velocityRatio/(Math.sqrt(1 + m**2)); 
             if (theta % (2 * Math.PI) < Math.PI) { // determining x's direction in the orbit
                 velocityRatioX =  - velocityRatioX;
@@ -70,7 +73,7 @@ class Simulation {
         this.acceleration = function() {
             let theta = this.trueAnomalie();
             let accelerationFactor = 1/(this.satRadius(theta) ** 2); // Proportional to true acceleration magnitude - Newton's law of universal gravitation
-            let maxAccelerationFactor = 1/(this.orbitPeriapsis ** 2); // When radius will be equal to periapsis, acceleration will be the greatest
+            let maxAccelerationFactor = 1/(this.pixelOrbit.periapsis ** 2); // When radius will be equal to periapsis, acceleration will be the greatest
             let accelerationRatio = accelerationFactor/maxAccelerationFactor;
             let accelerationRatioX = -accelerationRatio * Math.cos(theta);
             let accelerationRatioY = accelerationRatio * Math.sin(theta);
@@ -81,11 +84,11 @@ class Simulation {
         this.satLength = 35;
         // polar function describing orbital path - Kepler's first law
         this.satRadius = function(theta) {
-            return (this.orbitSemiMajorAxis * (1 - e**2))/(1 + e * Math.cos(theta));
+            return (this.pixelOrbit.semiMajorAxis * (1 - orbit.e**2))/(1 + orbit.e * Math.cos(theta));
         }
 
         this.meanAnomalie = function() {
-            return (this.time * 36 * 2 * Math.PI)/this.orbitalPeriod;
+            return (this.time * 36 * 2 * Math.PI)/orbit.orbitalPeriod;
         }
 
         this.eccentricAnomalie = function () {
@@ -94,8 +97,8 @@ class Simulation {
             } else {
                 // Newton's method with Kepler's equation M = E - e * sin(E). 
                 // It is a transcendental equation: no closed form solution, so numerical methods are necessary to estimate E
-                const f = (E) => E - this.e * Math.sin(E) - this.meanAnomalie();
-                const df_dE = (E) => 1 - this.e * Math.cos(E);
+                const f = (E) => E - orbit.e * Math.sin(E) - this.meanAnomalie();
+                const df_dE = (E) => 1 - orbit.e * Math.cos(E);
                 let E = this.meanAnomalie(); // initial guess for E
                 let E_next;
                 // 8 iterations reduce max error to under 1e-15 for the highest eccentricity possible (0.869)
@@ -108,10 +111,10 @@ class Simulation {
         }
 
         this.trueAnomalie = function () {
-            if (this.orbitIsCircular) {
+            if (orbit.orbitIsCircular) {
                 return this.meanAnomalie(); // for circular orbits, true anomalie is the same as mean anomalie
             } else {
-                let theta = 2 * Math.atan2(Math.sqrt(1+this.e) * Math.tan(this.eccentricAnomalie()/2), Math.sqrt(1-this.e));
+                let theta = 2 * Math.atan2(Math.sqrt(1 + orbit.e) * Math.tan(this.eccentricAnomalie()/2), Math.sqrt(1 - orbit.e));
                 if (theta < 0) {
                     theta += 2* Math.PI;
                 } 
@@ -122,7 +125,7 @@ class Simulation {
         this.satPosition = function() {
             let theta = this.trueAnomalie();
             let radius = this.satRadius(theta);
-            return [Math.cos(theta) * radius + this.orbitFocalDistance, -Math.sin(theta) * radius];
+            return [Math.cos(theta) * radius + this.pixelOrbit.focalDistance, -Math.sin(theta) * radius];
         }
         
     }
@@ -162,7 +165,7 @@ class Simulation {
             ctx.save();
             ctx.translate(canvas.width/2, canvas.height/2);
             ctx.beginPath();
-            ctx.ellipse(0, 0, this.orbitSemiMajorAxis, this.orbitSemiMinorAxis, -this.argumentOfPeriapsis, 0, 2 * Math.PI);
+            ctx.ellipse(0, 0, this.pixelOrbit.semiMajorAxis, this.pixelOrbit.semiMinorAxis, -this.orbit.argumentOfPeriapsis, 0, 2 * Math.PI);
             ctx.lineWidth = 2;
             ctx.strokeStyle = "white";
             ctx.stroke();
@@ -174,13 +177,13 @@ class Simulation {
         // satellite
         ctx.save();
         ctx.translate(canvas.width/2, canvas.height/2);
-        ctx.rotate(-this.argumentOfPeriapsis);
+        ctx.rotate(-this.orbit.argumentOfPeriapsis);
         ctx.translate(...this.satPosition());
-        ctx.rotate(this.argumentOfPeriapsis);
+        ctx.rotate(this.orbit.argumentOfPeriapsis);
         ctx.drawImage(satImg, -this.satLength/2, -this.satLength/2, this.satLength, this.satLength);
         ctx.restore();
 
-        //draw vector: line and a arrow head
+        // draw vector: line and a arrow head
         function drawVector(fromX, fromY, toX, toY, color, argumentOfPeriapsis) {
             ctx.save();
             ctx.translate(canvas.width/2, canvas.height/2);
@@ -206,14 +209,14 @@ class Simulation {
         if (this.showVelocity){
             let [velocityStartX, velocityStartY] = this.satPosition();
             let [velocityEndX, velocityEndY] = [velocityStartX + this.maxVectorSize * this.velocity()[0], velocityStartY + this.maxVectorSize * this.velocity()[1]]
-            drawVector(velocityStartX, velocityStartY, velocityEndX, velocityEndY, "blue", this.argumentOfPeriapsis);
+            drawVector(velocityStartX, velocityStartY, velocityEndX, velocityEndY, "blue", this.orbit.argumentOfPeriapsis);
         }
 
         // acceleration vector
         if (this.showAcceleration){
             let [accelerationStartX, accelerationStartY] = this.satPosition();
             let [accelerationEndX, accelerationEndY] = [accelerationStartX + this.maxVectorSize * this.acceleration()[0], accelerationStartY + this.maxVectorSize * this.acceleration()[1]]
-            drawVector(accelerationStartX, accelerationStartY, accelerationEndX, accelerationEndY, "red", this.argumentOfPeriapsis);
+            drawVector(accelerationStartX, accelerationStartY, accelerationEndX, accelerationEndY, "red", this.orbit.argumentOfPeriapsis);
         }
 
         // distance scale
@@ -298,3 +301,34 @@ const loadingScreen = new (class {
         }
     }
 });
+
+/**
+ * If startArg and endArg are false, the orbit will be constant and part of an OrbitSimulation. 
+ * If one of them is true, the orbit will be part of a ManeuverSimulation
+ */
+class Orbit {
+    constructor(semiMajorAxis, e, argumentOfPeriapsis, startArg, endArg) {
+        this.semiMajorAxis = parseInt(semiMajorAxis);
+        this.e =  parseFloat(e);
+        this.argumentOfPeriapsis = parseInt(argumentOfPeriapsis) * (Math.PI / 180); /// deg to rad
+        this.semiMinorAxis = this.semiMajorAxis * ((1 - (this.e ** 2)) ** 0.5);
+        this.periapsis = this.semiMajorAxis * (1 - this.e);
+        this.apoapsis =  this.semiMajorAxis * (1 + this.e);
+        this.focalDistance = (this.semiMajorAxis ** 2 - this.semiMinorAxis ** 2) ** 0.5;
+        this.orbitalPeriod = 2 * Math.PI * ((((this.semiMajorAxis * 1000) ** 3)/(G * EARTH_MASS))) ** 0.5;
+        this.orbitIsCircular = this.e == 0;
+        if (startArg && endArg) {
+            this.type == "transfer";
+            this.startArg =  parseFloat(startArg);
+            this.endArg =  parseFloat(endArg);
+        } else if (endArg) { // startArg is false
+            this.type == "start";
+            this.endArg =  parseFloat(endArg);
+        } else if (startArg) { // endArg is false
+            this.type == "end";
+            this.startArg =  parseFloat(startArg);
+        } else { // startArg and endArg are false
+            this.type == "constant";
+        }
+    }
+}
