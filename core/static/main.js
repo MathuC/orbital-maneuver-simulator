@@ -183,8 +183,8 @@ function generateOrbitInfo(orbit)
 {   
     const info = document.getElementById("info");
     info.innerHTML = "";
-    function createLine(name, value, unit) {
-        info.innerHTML += "<b>" + name + ": </b>" + value + ((typeof unit !== 'undefined') ? (" " + unit) : "") + "<br>";
+    function createLine(name, value) {
+        info.innerHTML += "<b>" + name + ": </b>" + value + "<br>";
     }
 
     function formatTime(time) {
@@ -195,13 +195,13 @@ function generateOrbitInfo(orbit)
         return `${hours}h ${minutes}m ${seconds}s`;
     }
     
-    createLine("Semi-major axis", orbit.semiMajorAxis, "km");
-    createLine("Semi-minor axis", Math.round(orbit.semiMinorAxis), "km");
+    createLine("Semi-major axis", orbit.semiMajorAxis + " km");
+    createLine("Semi-minor axis", Math.round(orbit.semiMinorAxis) + " km");
     createLine("Eccentricity", orbit.e);
-    createLine("Periapsis", Math.round(orbit.periapsis), "km");
-    createLine("Apoapsis", Math.round(orbit.apoapsis), "km");
-    createLine("Focal distance", Math.round(orbit.focalDistance), "km");
-    createLine("Argument of periapsis", Math.round(orbit.argumentOfPeriapsis * 180/Math.PI), "°");
+    createLine("Periapsis", Math.round(orbit.periapsis) + " km");
+    createLine("Apoapsis", Math.round(orbit.apoapsis) + " km");
+    createLine("Focal distance", Math.round(orbit.focalDistance) + " km");
+    createLine("Argument of periapsis", Math.round(orbit.argumentOfPeriapsis * 180/Math.PI) + "°");
     createLine("Orbital period", formatTime(orbit.orbitalPeriod));
 
     // credit
