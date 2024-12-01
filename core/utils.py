@@ -15,6 +15,9 @@ def process_orbit_data(semi_major_axis: int, ecc: float, arg: int) -> dict:
 
     return {"max_length": max_length}
 
+def process_maneuver_data(orbit1: list, orbit2: list) -> dict:
+    return {"data": "nothing"}
+
 def max_side_ellipse_bounding_box(a, b, theta):
     # finding min, max values of x, y of the ellipse using derivatives of parametric equations
     # this is done to perfectly fit the elliptical orbit in the simulation

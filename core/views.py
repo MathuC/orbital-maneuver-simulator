@@ -1,7 +1,7 @@
 from django.shortcuts import render, HttpResponse
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
-from .utils import process_orbit_data
+from .utils import process_orbit_data, process_maneuver_data
 from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
@@ -16,6 +16,18 @@ def submit_orbit_form(request):
     ecc = request.POST.get('orbit-ecc-value')
     arg = request.POST.get('orbit-arg-value')
     processed_data = process_orbit_data(axis, ecc, arg)
+    return JsonResponse(processed_data)
+
+@require_POST
+@csrf_exempt
+def submit_maneuver_form(request):
+    startAxis = request.POST.get('maneuver-axis-1-value')
+    startEcc = request.POST.get('maneuver-ecc-1-value')
+    startArg = request.POST.get('maneuver-arg-1-value')
+    endAxis = request.POST.get('maneuver-axis-2-value')
+    endEcc = request.POST.get('maneuver-ecc-2-value')
+    endArg = request.POST.get('maneuver-arg-2-value')
+    processed_data = process_maneuver_data([startAxis, startEcc, startArg], [endAxis, endEcc, endArg])
     return JsonResponse(processed_data)
 
 

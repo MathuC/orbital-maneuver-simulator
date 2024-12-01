@@ -1,21 +1,22 @@
 document.getElementById('orbit-form').addEventListener('submit', submitOrbitForm);
+document.getElementById('maneuver-form').addEventListener('submit', submitManeuverForm);
 
 function submitOrbitForm(event) {
     event.preventDefault(); // Prevent the default form submission and page reload
 
     if (!loadingScreen.isRunning) {
 
-        const formData = new FormData(event.target); // Get form data
-
-        orbitFormValidator(formData);
-
-        let orbit = new Orbit(parseInt(formData.get("orbit-axis-value")), parseFloat(formData.get("orbit-ecc-value")), parseInt(formData.get("orbit-arg-value")));
-
         // stop simulation and start loading screen
         if (typeof simulation !== 'undefined') {
             simulation.stop();
         }
         loadingScreen.start();
+
+        const formData = new FormData(event.target); // Get form data
+
+        orbitFormValidator(formData); // has to be before orbit definition since validator could put formData values to default
+
+        let orbit = new Orbit(parseInt(formData.get("orbit-axis-value")), parseFloat(formData.get("orbit-ecc-value")), parseInt(formData.get("orbit-arg-value")));
  
         fetch('/submit-orbit-form/', {
             method: 'POST',
@@ -28,12 +29,35 @@ function submitOrbitForm(event) {
             loadingScreen.stop();
             simulation.start();
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            alert('Error: '+ error); 
+            location.reload();
+        });
     }
 }
 
 function submitManeuverForm(event) {
+    event.preventDefault();
 
+    if (!loadingScreen.isRunning) {
+        if (typeof simulation !== 'undefined') {
+            simulation.stop();
+        }
+        loadingScreen.start();
+
+        const formData = new FormData(event.target);
+        fetch('/submit-maneuver-form/', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => response.json())
+        .then(data => {
+        })
+        .catch(error => {
+            alert('Error: '+ error); 
+            location.reload();
+        });    
+    }
 }
 
 function orbitFormValidator(formData) {
