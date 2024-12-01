@@ -130,9 +130,9 @@ body {
     font-size: 14px;
 }
 
-#orbit-axis-value, #orbit-ecc-value, #orbit-arg-value, #maneuver-axis-value-1,
-#maneuver-ecc-value-1, #maneuver-arg-value-1, #maneuver-axis-value-2,
-#maneuver-ecc-value-2, #maneuver-arg-value-2 {
+#orbit-axis-value, #orbit-ecc-value, #orbit-arg-value, #maneuver-axis-1-value,
+#maneuver-ecc-1-value, #maneuver-arg-1-value, #maneuver-axis-2-value,
+#maneuver-ecc-2-value, #maneuver-arg-2-value {
     width: 100px;
 }
 

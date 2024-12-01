@@ -112,7 +112,7 @@ function syncSliderAndInput(id) {
     });
 
     value.addEventListener('input', () => {
-        slider.value = value.value.replace(/\.$/, ''); // so that eg. 12345. isn't NaN
+        slider.value = value.value.replace(/\.$/, ''); // so that eg. 12345. (decimal point without anything after) isn't NaN
     });
 
     value.addEventListener('blur', () => {
@@ -127,7 +127,7 @@ function clamp(id) {
     const min = parseFloat(document.getElementById(id + "-slider").min);
     const max = parseFloat(document.getElementById(id + "-slider").max);
 
-    if (id == "orbit-arg") { //angle periodicity
+    if (id == "orbit-arg" || id == "maneuver-arg-1" || id == "maneuver-arg-2") { //angle periodicity
         if (value.value == '') {
             value.value = 0;
             slider.value = 0;
@@ -149,34 +149,44 @@ function clamp(id) {
     }
 }
 
-const sliderInputIds = ["orbit-ecc", "orbit-axis", "orbit-arg"];
+const sliderInputIds = ["orbit-axis", "orbit-ecc", "orbit-arg", "maneuver-axis-1", "maneuver-axis-2",
+    "maneuver-ecc-1", "maneuver-ecc-2", "maneuver-arg-1", "maneuver-arg-2"
+];
 sliderInputIds.forEach((id) => {
     syncSliderAndInput(id);
 });
 
+
 // change eccentricity max so that periapsis is at least bigger than earth's radius + 160km which is the lowest altitude a satellite can be at
-function changeMaxEcc() {
-    orbitAxisValue = parseFloat(document.getElementById("orbit-axis-value").value);
+function changeMaxEcc(axisId, eccId) {
+    orbitAxisValue = parseFloat(document.getElementById(axisId + "-value").value);
     if (!isNaN(orbitAxisValue)){
         eccMax = maxEcc(orbitAxisValue);
-        document.getElementById("orbit-ecc-slider").max = Math.floor(eccMax * 1000) / 1000;
-        clamp("orbit-ecc");
+        document.getElementById(eccId + "-slider").max = Math.floor(eccMax * 1000) / 1000;
+        clamp(eccId);
     }
 }
-
 function maxEcc(semiMajorAxis) {
     return 1 - (EARTH_RADIUS + 160)/semiMajorAxis;
 }
 
-document.getElementById("orbit-axis-slider").addEventListener('input', () => {
-    changeMaxEcc();
-});
+function triggerChangeMaxEcc(axisId, eccId) {
+    document.getElementById(axisId + "-slider").addEventListener('input', () => {
+        changeMaxEcc(axisId, eccId);
+    });
+    document.getElementById(axisId+"-value").addEventListener('blur', () => {
+        changeMaxEcc(axisId, eccId);
+    });
+    changeMaxEcc(axisId, eccId); //for the default values after the html loads
+}
 
-document.getElementById("orbit-axis-value").addEventListener('blur', () => {
-    changeMaxEcc();
-});
+// orbit
+triggerChangeMaxEcc("orbit-axis", "orbit-ecc");
 
-changeMaxEcc();
+// maneuvers
+triggerChangeMaxEcc("maneuver-axis-1", "maneuver-ecc-1");
+triggerChangeMaxEcc("maneuver-axis-2", "maneuver-ecc-2");
+
 
 // info
 function generateOrbitInfo(orbit) 
