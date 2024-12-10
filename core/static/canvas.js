@@ -16,6 +16,24 @@ let simulation;
  * default: 1h/s
  * argument of periapsis is the angle between the semi major axis and x axis
  */ 
+
+class ManeuverSimulation {
+    constructor(startOrbit, endOrbit, transferOrbits, burns, maxLength) {
+        this.animation;
+        this.time = 0;
+        this.isRunning = false;
+        this.speedMultiplier = parseInt(speedSlider.value);
+        this.scale = Math.floor(maxLength/5) + " km";
+        this.showOrbitalPath  = orbitalPathCheckbox.checked;
+        this.showVelocity = velocityCheckbox.checked;
+        this.showAcceleration = accelerationCheckbox.checked;
+        this.maxVectorSize = 150;
+
+        // orbit 
+        this.orbit = orbit;
+        const kmPerPixel = maxLength/500;
+    }
+}
 class OrbitSimulation {
 
     constructor(orbit, maxLength) {
@@ -32,6 +50,7 @@ class OrbitSimulation {
         // orbit 
         this.orbit = orbit;
         const kmPerPixel = maxLength/500;
+
         // contains orbit distances but converted in pixels for the simulation
         this.pixelOrbit = {
             semiMajorAxis: orbit.semiMajorAxis/kmPerPixel,
@@ -289,6 +308,7 @@ const loadingScreen = new (class {
             this.animation = setInterval(this.draw.bind(this), 500);
             this.isRunning = true;
             document.getElementById("orbit-submit-btn").disabled = true;
+            document.getElementById("maneuver-submit-btn").disabled = true;
         }
     }
 
@@ -298,6 +318,7 @@ const loadingScreen = new (class {
             this.time = 0;
             this.isRunning = false;
             document.getElementById("orbit-submit-btn").disabled = false;
+            document.getElementById("maneuver-submit-btn").disabled = false;
         }
     }
 });

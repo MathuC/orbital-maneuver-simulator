@@ -16,7 +16,7 @@ function submitOrbitForm(event) {
 
         orbitFormValidator(formData); // has to be before orbit definition since validator could put formData values to default
 
-        let orbit = new Orbit(parseInt(formData.get("orbit-axis-value")), parseFloat(formData.get("orbit-ecc-value")), parseInt(formData.get("orbit-arg-value")));
+        let orbit = new Orbit(parseInt(formData.get("orbit-axis-value")), parseFloat(formData.get("orbit-ecc-value")), parseInt(formData.get("orbit-arg-value")), false, false);
  
         fetch('/submit-orbit-form/', {
             method: 'POST',
@@ -52,6 +52,7 @@ function submitManeuverForm(event) {
         })
         .then(response => response.json())
         .then(data => {
+            console.log(data);
         })
         .catch(error => {
             alert('Error: '+ error); 

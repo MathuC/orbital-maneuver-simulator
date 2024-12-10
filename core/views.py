@@ -27,7 +27,7 @@ def submit_maneuver_form(request):
     endAxis = request.POST.get('maneuver-axis-2-value')
     endEcc = request.POST.get('maneuver-ecc-2-value')
     endArg = request.POST.get('maneuver-arg-2-value')
-    processed_data = process_maneuver_data([startAxis, startEcc, startArg], [endAxis, endEcc, endArg])
+    processed_data = process_maneuver_data({"axis": startAxis, "ecc": startEcc, "arg": startArg}, {"axis": endAxis, "ecc": endEcc, "arg": endArg})
     return JsonResponse(processed_data)
 
 
