@@ -18,9 +18,11 @@ let simulation;
  */ 
 
 class ManeuverSimulation {
-    constructor(startOrbit, endOrbit, transferOrbits, burns, maxLength) {
+    constructor(startOrbit, endOrbit, transferOrbits, burns, maxLength, earthPos) {
         this.animation;
         this.time = 0;
+        // "start", "transfer", "end", when in transfer mode, the second arg is an int that represents the id of the transfer orbit
+        this.currentOrbit = ["start", null];
         this.isRunning = false;
         this.speedMultiplier = parseInt(speedSlider.value);
         this.scale = Math.floor(maxLength/5) + " km";
@@ -29,11 +31,26 @@ class ManeuverSimulation {
         this.showAcceleration = accelerationCheckbox.checked;
         this.maxVectorSize = 150;
 
-        // orbit 
-        this.orbit = orbit;
-        const kmPerPixel = maxLength/500;
+        // orbits
+        this.startOrbit = startOrbit;
+        this.endOrbit = endOrbit;
+        this.transferOrbits = transferOrbits;
+        this.burns = burns;
+        this.kmPerPixel = maxLength/500;
+
+        // stars
+        this.stars = [];
+        for (let i = 0; i < 100; i++) {
+            this.stars.push([Math.floor(Math.random() * 501) -250, Math.floor(Math.random() * 501) -250, Math.random()]);
+        }
+
+        // earth
+        this.earthArg = 0;
+        this.earthDiameter = EARTH_DIAMETER/this.kmPerPixel;
+        this.earthPos = [earthPos[0]/this.kmPerPixel, earthPos[1]/this.kmPerPixel]
     }
 }
+
 class OrbitSimulation {
 
     constructor(orbit, maxLength) {
@@ -69,8 +86,9 @@ class OrbitSimulation {
         // earth
         this.earthArg = 0;
         this.earthDiameter = EARTH_DIAMETER/kmPerPixel;
-        this.earthX = (orbit.semiMajorAxis - orbit.periapsis) * Math.cos(orbit.argumentOfPeriapsis)/kmPerPixel;
-        this.earthY = -(orbit.semiMajorAxis - orbit.periapsis) * Math.sin(orbit.argumentOfPeriapsis)/kmPerPixel;
+        let earthX = (orbit.semiMajorAxis - orbit.periapsis) * Math.cos(orbit.argumentOfPeriapsis)/kmPerPixel;
+        let earthY = -(orbit.semiMajorAxis - orbit.periapsis) * Math.sin(orbit.argumentOfPeriapsis)/kmPerPixel;
+        this.earthPos = [earthX, earthY];
 
         // velocity vector
         this.velocity = function() {
@@ -174,7 +192,7 @@ class OrbitSimulation {
         // earth
         ctx.save();
         ctx.translate(canvas.width/2, canvas.height/2);
-        ctx.translate(this.earthX, this.earthY);
+        ctx.translate(this.earthPos[0], this.earthPos[1]);
         ctx.rotate(-this.earthArg);
         ctx.drawImage(earthImg, -this.earthDiameter/2, -this.earthDiameter/2, this.earthDiameter, this.earthDiameter);
         ctx.restore();

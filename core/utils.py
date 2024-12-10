@@ -52,6 +52,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
         axis = (periapsis + apoapsis)/2
         ecc = (apoapsis - periapsis)/(periapsis + apoapsis)
         max_length = apoapsis * 2
+        earth_pos = [0,0] # since the biggest orbit will always be circular, earth should be in the middle of the canvas
 
         transfer_orbits = [{"axis": axis, "ecc": ecc, "arg": arg, "start_arg": start_arg, "end_arg": end_arg}]
         v1 = math.sqrt((G * EARTH_MASS)/start_orbit["axis"]) # start_orbit velocity
@@ -60,7 +61,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
         v4 = math.sqrt((G * EARTH_MASS)/end_orbit["axis"]) # end_orbit velocity
         burns = [v2-v1, v4-v3]
 
-        return {"start_orbit": start_orbit, "end_orbit": end_orbit, "transfer_orbits": transfer_orbits, "burns": burns, "max_length": max_length}
+        return {"start_orbit": start_orbit, "end_orbit": end_orbit, "transfer_orbits": transfer_orbits, "burns": burns, "max_length": max_length, "earth_pos": earth_pos}
 
     else:
         return {"data": "nothing"}
