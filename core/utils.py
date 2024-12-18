@@ -18,6 +18,7 @@ def process_orbit_data(semi_major_axis: int, ecc: float, arg: int) -> dict:
     return {"max_length": max_length}
 
 def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
+    # conversion to right primitives
     start_orbit["axis"] = int(start_orbit["axis"])
     start_orbit["ecc"] = float(start_orbit["ecc"])
     start_orbit["arg"] = math.radians(int(start_orbit["arg"]))
@@ -33,18 +34,19 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
         end_orbit["start_arg"] = (math.pi + start_orbit["arg"] - end_orbit["arg"]) % (2 * math.pi) # transfer_orbit arg and end_orbit start_arg depend on the start_orbit arg
         end_orbit["end_arg"] = False
 
+        # transfer orbit
         if(start_orbit["axis"] < end_orbit["axis"]):
             periapsis = start_orbit["axis"]
             apoapsis = end_orbit["axis"]
 
-            arg = 0
+            arg = start_orbit["arg"] # transfer happens from start orbit 
             start_arg = 0
             end_arg = math.pi
         else:
             periapsis = end_orbit["axis"]
             apoapsis = start_orbit["axis"]
 
-            arg = math.pi
+            arg = (start_orbit["arg"] + math.pi) % (2 * math.pi)
             start_arg = math.pi
             end_arg = 0
         

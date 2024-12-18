@@ -14,14 +14,14 @@ let simulation;
  * default: periapsis on the right
  * default: counter clockwise orbit
  * default: 1h/s
- * argument of periapsis is the angle between the semi major axis and x axis
+ * argument of periapsis is the angle between the line earth_center-periapsis and the x-axis
  */ 
 
 class ManeuverSimulation {
     constructor(startOrbit, endOrbit, transferOrbits, burns, maxLength, earthPos) {
         this.animation;
         this.time = 0;
-        // "start", "transfer", "end", when in transfer mode, the second arg is an int that represents the id of the transfer orbit
+        // "start", "transfer", "end", when in transfer mode, the second arg is an int that represents the id of the transfer orbit in transferOrbits
         this.currentOrbit = ["start", null];
         this.isRunning = false;
         this.speedMultiplier = parseInt(speedSlider.value);
@@ -48,6 +48,95 @@ class ManeuverSimulation {
         this.earthArg = 0;
         this.earthDiameter = EARTH_DIAMETER/this.kmPerPixel;
         this.earthPos = [earthPos[0]/this.kmPerPixel, earthPos[1]/this.kmPerPixel]
+    }
+
+    draw() {
+        ctx.clearRect(0, 0, 600, 600);
+
+        // stars
+        ctx.save();
+        ctx.translate(canvas.width/2, canvas.height/2);
+        this.stars.forEach(star => {
+            const [x, y, z] = star;
+            ctx.beginPath();
+            if (z > 0.95) { // twinkling star
+                ctx.arc(x, y, Math.floor(Math.random()*2)+1, 0, Math.PI * 2);
+            } else if (z > 0.90){ // big star
+                ctx.arc(x, y, 2, 0, Math.PI * 2);
+            } else { // small star
+                ctx.arc(x, y, 1, 0, Math.PI * 2);
+            }
+            ctx.fillStyle = "white";
+            ctx.fill();
+            ctx.closePath();
+        });
+        ctx.restore();
+
+        // earth
+        ctx.save();
+        ctx.translate(canvas.width/2, canvas.height/2);
+        ctx.translate(this.earthPos[0], this.earthPos[1]);
+        ctx.rotate(-this.earthArg);
+        ctx.drawImage(earthImg, -this.earthDiameter/2, -this.earthDiameter/2, this.earthDiameter, this.earthDiameter);
+        ctx.restore();
+
+
+        let drawOrbit = (orbit) => {
+            ctx.save();
+            ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.rotate(-orbit.argumentOfPeriapsis);
+            ctx.translate(-orbit.focalDistance/this.kmPerPixel, 0);
+            if (orbit.type == "transfer") {
+                ctx.setLineDash([5,5]);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, orbit.startArg, orbit.endArg);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "yellow";
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, orbit.endArg,orbit.startArg);
+                ctx.stroke();
+            } else {
+                ctx.beginPath();
+                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, 0, 2 * Math.PI);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "white";
+                ctx.stroke();
+            }
+            ctx.closePath();
+            ctx.restore();
+        }
+
+        // orbits
+        if (this.showOrbitalPath) {
+            drawOrbit(this.startOrbit);
+            drawOrbit(this.endOrbit);
+            this.transferOrbits.forEach((orbit) => {
+                drawOrbit(orbit);
+            })
+        }
+
+        // increments for next animation frame
+        this.earthArg += this.speedMultiplier * 2 * Math.PI/(100 * 24);
+        this.time += this.speedMultiplier;
+    }
+
+    start() {
+        if (this.isRunning == false) {
+            this.draw(); // first frame, setInterval will wait interval time before starting to draw
+            this.animation = setInterval(this.draw.bind(this), 10); // bind(this) is used so this in this.draw doesn't refer to global context while inside setInterval
+            this.isRunning = true;
+            document.getElementById("play-pause-btn").innerHTML = "&#10074;&#10074;";
+        }
+    }
+
+    stop() {
+        if (this.isRunning == true) {
+            clearInterval(this.animation);
+            this.isRunning = false;
+            document.getElementById("play-pause-btn").innerHTML = "&#9654;";
+        }
     }
 }
 
@@ -201,14 +290,14 @@ class OrbitSimulation {
         if (this.showOrbitalPath) {
             ctx.save();
             ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.rotate(-this.orbit.argumentOfPeriapsis);
             ctx.beginPath();
-            ctx.ellipse(0, 0, this.pixelOrbit.semiMajorAxis, this.pixelOrbit.semiMinorAxis, -this.orbit.argumentOfPeriapsis, 0, 2 * Math.PI);
+            ctx.ellipse(0, 0, this.pixelOrbit.semiMajorAxis, this.pixelOrbit.semiMinorAxis, 0, 0, 2 * Math.PI);
             ctx.lineWidth = 2;
             ctx.strokeStyle = "white";
             ctx.stroke();
             ctx.closePath();
             ctx.restore();
-            ctx.save();
         }
 
         // satellite
@@ -236,7 +325,7 @@ class OrbitSimulation {
             ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY- headLen * Math.sin(angle - Math.PI / 6));
             ctx.moveTo(toX, toY);
             ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
-            ctx.lineWidth = 2; 
+            ctx.lineWidth = 2;
             ctx.stroke();
             ctx.restore();
             ctx.restore();
@@ -346,28 +435,24 @@ const loadingScreen = new (class {
  * If one of them is true, the orbit will be part of a ManeuverSimulation
  */
 class Orbit {
-    constructor(semiMajorAxis, e, argumentOfPeriapsis, startArg, endArg) {
+    constructor(semiMajorAxis, e, argumentOfPeriapsis, type, startArg, endArg) {
         this.semiMajorAxis = parseInt(semiMajorAxis);
         this.e =  parseFloat(e);
-        this.argumentOfPeriapsis = parseInt(argumentOfPeriapsis) * (Math.PI / 180); /// deg to rad
+        this.argumentOfPeriapsis = parseFloat(argumentOfPeriapsis);
         this.semiMinorAxis = this.semiMajorAxis * ((1 - (this.e ** 2)) ** 0.5);
         this.periapsis = this.semiMajorAxis * (1 - this.e);
         this.apoapsis =  this.semiMajorAxis * (1 + this.e);
         this.focalDistance = (this.semiMajorAxis ** 2 - this.semiMinorAxis ** 2) ** 0.5;
         this.orbitalPeriod = 2 * Math.PI * ((((this.semiMajorAxis * 1000) ** 3)/(G * EARTH_MASS))) ** 0.5;
         this.orbitIsCircular = this.e == 0;
-        if (startArg && endArg) {
-            this.type == "transfer";
+        this.type = type;
+        if (this.type == "transfer") {
             this.startArg =  parseFloat(startArg);
             this.endArg =  parseFloat(endArg);
-        } else if (endArg) { // startArg is false
-            this.type == "start";
+        } else if (this.type == "start") {
             this.endArg =  parseFloat(endArg);
-        } else if (startArg) { // endArg is false
-            this.type == "end";
+        } else if (this.type == "end") {
             this.startArg =  parseFloat(startArg);
-        } else { // startArg and endArg are false
-            this.type == "constant";
         }
     }
 }
