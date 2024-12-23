@@ -34,7 +34,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
         end_orbit["start_arg"] = normalize_angle((math.pi + start_orbit["arg"] - end_orbit["arg"])) # transfer_orbit arg and end_orbit start_arg depend on the start_orbit arg
         end_orbit["end_arg"] = False
 
-        # transfer orbit
+        # transfer orbit (1)
         if(start_orbit["axis"] < end_orbit["axis"]):
             periapsis = start_orbit["axis"]
             apoapsis = end_orbit["axis"]
@@ -49,14 +49,13 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
             arg = (start_orbit["arg"] + math.pi) % (2 * math.pi)
             start_arg = math.pi
             end_arg = 0
-        
 
         axis = (periapsis + apoapsis)/2
         ecc = (apoapsis - periapsis)/(periapsis + apoapsis)
         max_length = apoapsis * 2 # diameter of bigger circular orbit
         earth_pos = [0, 0] # since the biggest orbit will always be circular, earth should be in the middle of the canvas
-
         transfer_orbits = [{"axis": axis, "ecc": ecc, "arg": arg, "start_arg": start_arg, "end_arg": end_arg}]
+
         v1_init = math.sqrt((G * EARTH_MASS)/start_orbit["axis"]) # start_orbit velocity
         v1_final = math.sqrt((G * EARTH_MASS) * (2/start_orbit["axis"] - 1/axis)) # transfer_orbit velocity at the start of transfer
         v2_init = math.sqrt((G * EARTH_MASS) * (2/end_orbit["axis"] - 1/axis)) # transfer_orbit velocity at the end of transfer
@@ -111,6 +110,24 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
         start_orbit['end_arg'] = end_orbit['arg']
         end_orbit['start_arg'] = math.pi
 
+        # transfer orbit (1)
+        if (start_orbit['axis'] < end_orbit_apoapsis):
+            start_arg = math.pi 
+            end_arg = 0
+            periapsis = start_orbit['axis']
+            apoapsis = end_orbit_apoapsis
+        else:
+            start_arg = 0
+            end_arg = math.pi
+            periapsis = end_orbit_apoapsis
+            apoapsis = start_orbit['axis']
+        
+        axis = (periapsis + apoapsis)/2
+        ecc = (apoapsis - periapsis)/(periapsis + apoapsis)
+        max_length = apoapsis * 2
+        transfer_orbits = [{"axis": axis, "ecc": ecc, "arg": arg, "start_arg": start_arg, "end_arg": end_arg}]
+
+        #v1, v2, burns and you're done
 
         return {"data": "nothing"}
 
