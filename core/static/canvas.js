@@ -21,8 +21,6 @@ class ManeuverSimulation {
     constructor(startOrbit, endOrbit, transferOrbits, burns, maxLength, earthPos) {
         this.animation;
         this.time = 0;
-        // "start", "transfer", "end", when in transfer mode, the second arg is an int that represents the id of the transfer orbit in transferOrbits
-        this.currentOrbit = ["start", null];
         this.isRunning = false;
         this.speedMultiplier = parseInt(speedSlider.value);
         this.scale = Math.floor(maxLength/5) + " km";
@@ -32,9 +30,11 @@ class ManeuverSimulation {
         this.maxVectorSize = 150;
 
         // orbits
-        this.startOrbit = startOrbit;
-        this.endOrbit = endOrbit;
-        this.transferOrbits = transferOrbits;
+        this.startPhase = true; // if the start phase is true, no burns can be executed 
+        // this will stay true till the start orbit's mean anomalie is at pi/2
+        // so that the burn isn't executed as soon as the simulation starts)
+        this.orbits = [startOrbit, ...transferOrbits, endOrbit];
+        this.currentOrbitId = 0; // pointer to the current orbit
         this.burns = burns;
         this.kmPerPixel = maxLength/500;
 
@@ -47,7 +47,7 @@ class ManeuverSimulation {
         // earth
         this.earthArg = 0;
         this.earthDiameter = EARTH_DIAMETER/this.kmPerPixel;
-        this.earthPos = [earthPos[0]/this.kmPerPixel, earthPos[1]/this.kmPerPixel]
+        this.earthPos = [earthPos[0]/this.kmPerPixel, -earthPos[1]/this.kmPerPixel] // because of how to canvas work, y's sign needs to be flipped
     }
 
     draw() {
@@ -75,7 +75,7 @@ class ManeuverSimulation {
         // earth
         ctx.save();
         ctx.translate(canvas.width/2, canvas.height/2);
-        ctx.translate(this.earthPos[0], this.earthPos[1]);
+        ctx.translate(...this.earthPos);
         ctx.rotate(-this.earthArg);
         ctx.drawImage(earthImg, -this.earthDiameter/2, -this.earthDiameter/2, this.earthDiameter, this.earthDiameter);
         ctx.restore();
@@ -84,8 +84,9 @@ class ManeuverSimulation {
         let drawOrbit = (orbit) => {
             ctx.save();
             ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.translate(...this.earthPos);
             ctx.rotate(-orbit.argumentOfPeriapsis);
-            ctx.translate(-orbit.focalDistance/this.kmPerPixel, 0);
+            ctx.translate(-orbit.focalDistance/(this.kmPerPixel), 0);
             if (orbit.type == "transfer") {
                 ctx.setLineDash([5,5]);
                 ctx.beginPath();
@@ -110,9 +111,7 @@ class ManeuverSimulation {
 
         // orbits
         if (this.showOrbitalPath) {
-            drawOrbit(this.startOrbit);
-            drawOrbit(this.endOrbit);
-            this.transferOrbits.forEach((orbit) => {
+            this.orbits.forEach((orbit) => {
                 drawOrbit(orbit);
             })
         }
@@ -281,7 +280,7 @@ class OrbitSimulation {
         // earth
         ctx.save();
         ctx.translate(canvas.width/2, canvas.height/2);
-        ctx.translate(this.earthPos[0], this.earthPos[1]);
+        ctx.translate(...this.earthPos);
         ctx.rotate(-this.earthArg);
         ctx.drawImage(earthImg, -this.earthDiameter/2, -this.earthDiameter/2, this.earthDiameter, this.earthDiameter);
         ctx.restore();
