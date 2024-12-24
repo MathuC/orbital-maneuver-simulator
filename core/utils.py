@@ -26,7 +26,8 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
     end_orbit["axis"] = int(end_orbit["axis"])
     end_orbit["ecc"] = float(end_orbit["ecc"])
     end_orbit["arg"] = math.radians(int(end_orbit["arg"]))
-
+    
+    orbits = [{start_orbit.copy()}]
 
     
     return {"data": "nothing"}
