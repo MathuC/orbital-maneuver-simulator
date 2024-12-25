@@ -45,15 +45,15 @@ def max_length_earth_pos(orbits):
             continue
         bounding_box = ellipse_bounding_box(orbit["axis"], orbit["ecc"], orbit["arg"])
         semi_minor_axis =  orbit["axis"] * math.sqrt(1 - (orbit["ecc"] ** 2))
-        focal_distance = math.sqrt(orbit["axis"] ** 2 - semi_minor_axis ** 2) 
+        focal_distance = math.sqrt(orbit["axis"] ** 2 - semi_minor_axis ** 2)
 
         # we can use the focal distance because the center of the ellipse is centered in the bounding box
         focal_distance_x = math.cos(orbit["arg"]) * focal_distance
         focal_distance_y = math.sin(orbit["arg"]) * focal_distance
         x_left.append(bounding_box[0]/2 + focal_distance_x)
         x_right.append(bounding_box[0]/2 - focal_distance_x)
-        y_bottom.append(bounding_box[1] + focal_distance_y)
-        y_top.append(bounding_box[1] - focal_distance_y)
+        y_bottom.append(bounding_box[1]/2 + focal_distance_y)
+        y_top.append(bounding_box[1]/2 - focal_distance_y)
 
     max_length_x = max(x_left) + max(x_right)
     max_length_y = max(y_bottom) + max(y_top)
@@ -120,7 +120,6 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
     if (apoapsis(orbits[-1]) != apoapsis(end_orbit)):
         newOrbit = {}
         newOrbit["axis"] = axis(periapsis(orbits[-1]), apoapsis(end_orbit))
-        newOrbit["ecc"] = eccentricity(periapsis(orbits[-1]), apoapsis(end_orbit))
 
         # if orbits[-1] is a circle, then do the rotation of the orbit and the same time of this burn
         if (periapsis(orbits[-1]) == apoapsis(orbits[-1])):
@@ -138,8 +137,10 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                 newOrbit["arg"] = normalize_angle(orbits[-1]["arg"] + math.pi)
 
         if (periapsis(orbits[-1]) <= apoapsis(end_orbit)):
+            newOrbit["ecc"] = eccentricity(periapsis(orbits[-1]), apoapsis(end_orbit))
             newOrbit["start_arg"] = 0
         else:
+            newOrbit["ecc"] = eccentricity(apoapsis(end_orbit), periapsis(orbits[-1]))
             newOrbit["start_arg"] = math.pi
 
         v1 = velocity(periapsis(orbits[-1]), orbits[-1]["axis"])
