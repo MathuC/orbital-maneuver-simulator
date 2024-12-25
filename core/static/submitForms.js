@@ -23,8 +23,10 @@ function submitManeuverForm(event) {
                     orbits.push(new Orbit(orbit.axis, orbit.ecc, orbit.arg, "start", false, orbit.end_arg));
                 } else if (id == data.orbits.length - 1) {
                     orbits.push(new Orbit(orbit.axis, orbit.ecc, orbit.arg, "end", orbit.start_arg, false));
-                } else {
-                    orbits.push(new Orbit(orbit.axis, orbit.ecc, orbit.arg, "transfer", orbit.start_arg, orbit.end_arg));
+                } else if (id == 1 && data.orbits.length >= 3) {
+                    orbits.push(new Orbit(orbit.axis, orbit.ecc, orbit.arg, "transfer1", orbit.start_arg, orbit.end_arg));
+                } else if (id == 2 && data.orbits.length == 4) {
+                    orbits.push(new Orbit(orbit.axis, orbit.ecc, orbit.arg, "transfer2", orbit.start_arg, orbit.end_arg));
                 }
             });
 

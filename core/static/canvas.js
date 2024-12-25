@@ -88,12 +88,12 @@ class ManeuverSimulation {
             ctx.translate(...this.earthPos);
             ctx.rotate(-orbit.argumentOfPeriapsis);
             ctx.translate(-orbit.focalDistance/(this.kmPerPixel), 0);
-            if (orbit.type == "transfer") {
+            if (orbit.type.includes("transfer")) {
                 ctx.setLineDash([5,5]);
                 ctx.beginPath();
                 ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, orbit.startArg, orbit.endArg);
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = "yellow";
+                ctx.strokeStyle = orbit.type == "transfer1" ? "cyan" : "magenta";
                 ctx.stroke();
                 ctx.setLineDash([]);
                 ctx.beginPath();
@@ -103,7 +103,7 @@ class ManeuverSimulation {
                 ctx.beginPath();
                 ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, 0, 2 * Math.PI);
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = "white";
+                ctx.strokeStyle = orbit.type == "start" ? "blue" : "red";
                 ctx.stroke();
             }
             ctx.closePath();
@@ -446,7 +446,7 @@ class Orbit {
         this.orbitalPeriod = 2 * Math.PI * ((((this.semiMajorAxis * 1000) ** 3)/(G * EARTH_MASS))) ** 0.5;
         this.orbitIsCircular = this.e == 0;
         this.type = type;
-        if (this.type == "transfer") {
+        if (this.type.includes("transfer")) {
             this.startArg =  parseFloat(startArg);
             this.endArg =  parseFloat(endArg);
         } else if (this.type == "start") {
