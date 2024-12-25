@@ -18,7 +18,7 @@ let simulation;
  */ 
 
 class ManeuverSimulation {
-    constructor(startOrbit, endOrbit, transferOrbits, burns, maxLength, earthPos) {
+    constructor(orbits, burns, maxLength, earthPos) {
         this.animation;
         this.time = 0;
         this.isRunning = false;
@@ -30,10 +30,11 @@ class ManeuverSimulation {
         this.maxVectorSize = 150;
 
         // orbits
-        this.startPhase = true; // if the start phase is true, no burns can be executed 
+        this.startPhase = true; 
+        // if the start phase is true, no burns can be executed 
         // this will stay true till the start orbit's mean anomalie is at pi/2
-        // so that the burn isn't executed as soon as the simulation starts)
-        this.orbits = [startOrbit, ...transferOrbits, endOrbit];
+        // so a 0 angle burn isn't executed as soon as the simulation starts
+        this.orbits = orbits;
         this.currentOrbitId = 0; // pointer to the current orbit
         this.burns = burns;
         this.kmPerPixel = maxLength/500;

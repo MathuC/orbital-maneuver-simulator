@@ -17,18 +17,21 @@ function submitManeuverForm(event) {
         })
         .then(response => response.json())
         .then(data => {
-            let startOrbit = new Orbit(data.start_orbit.axis, data.start_orbit.ecc, 
-                data.start_orbit.arg, "start", data.start_orbit.start_arg, data.start_orbit.end_arg);
-            let endOrbit = new Orbit(data.end_orbit.axis, data.end_orbit.ecc, 
-                data.end_orbit.arg, "end",  data.end_orbit.start_arg, data.end_orbit.end_arg);
-            let transferOrbits = [];
-            for (orbit of data.transfer_orbits) {
-                transferOrbits.push(new Orbit(orbit.axis, orbit.ecc, orbit.arg, "transfer", orbit.start_arg, orbit.end_arg));
-            }
+            let orbits = [];
+            data.orbits.forEach((orbit, id) => {
+                if (id == 0) {
+                    orbits.push(new Orbit(orbit.axis, orbit.ecc, orbit.arg, "start", false, orbit.end_arg));
+                } else if (id == data.orbits.length - 1) {
+                    orbits.push(new Orbit(orbit.axis, orbit.ecc, orbit.arg, "end", orbit.start_arg, false));
+                } else {
+                    orbits.push(new Orbit(orbit.axis, orbit.ecc, orbit.arg, "transfer", orbit.start_arg, orbit.end_arg));
+                }
+            });
+
             let burns = data.burns;
             let maxLength  = data.max_length;
             let earthPos = data.earth_pos;
-            simulation = new ManeuverSimulation(startOrbit, endOrbit, transferOrbits, burns, maxLength, earthPos);
+            simulation = new ManeuverSimulation(orbits, burns, maxLength, earthPos);
             
             loadingScreen.stop();
             simulation.start();
