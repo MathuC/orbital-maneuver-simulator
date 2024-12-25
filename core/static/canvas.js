@@ -93,7 +93,7 @@ class ManeuverSimulation {
                 ctx.beginPath();
                 ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, orbit.startArg, orbit.endArg);
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = orbit.type == "transfer1" ? "cyan" : "magenta";
+                ctx.strokeStyle = orbit.type == "transfer1" ? "magenta" : "yellow";
                 ctx.stroke();
                 ctx.setLineDash([]);
                 ctx.beginPath();
@@ -103,7 +103,7 @@ class ManeuverSimulation {
                 ctx.beginPath();
                 ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, 0, 2 * Math.PI);
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = orbit.type == "start" ? "blue" : "red";
+                ctx.strokeStyle = orbit.type == "start" ? "dodgerblue" : "green";
                 ctx.stroke();
             }
             ctx.closePath();
