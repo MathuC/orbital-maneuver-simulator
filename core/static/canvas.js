@@ -101,7 +101,7 @@ class ManeuverSimulation {
                 ctx.stroke();
                 ctx.setLineDash([]);
                 ctx.beginPath();
-                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, orbit.startArg,orbit.endArg, true);
+                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, orbit.startArg, orbit.endArg, true);
                 ctx.stroke();
             } else {
                 ctx.beginPath();

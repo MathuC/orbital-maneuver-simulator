@@ -154,7 +154,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
     
     # Make the orbit circular if need to change arg later
     if (orbits[-1]["arg"] != end_orbit["arg"] and normalize_angle(orbits[-1]["arg"] + math.pi) != end_orbit["arg"] 
-        and orbits[-1]["ecc"] != 0):
+        and orbits[-1]["ecc"] != 0 and end_orbit["ecc"] != 0):
 
         newOrbit = {}
         newOrbit["axis"] = apoapsis(orbits[-1])
