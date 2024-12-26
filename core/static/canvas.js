@@ -7,7 +7,7 @@ const EARTH_MASS = 5.972e24;
 
 let simulation;
 
-/** 
+/* 
  * redraw every 10 ms
  * leave 50 pixels around the canvas so the orbits aren't stuck to the
  * the border which is 600 x 600 pixels so the drawing canvas is 500 x 500 pixels (600-50-50)
@@ -16,6 +16,10 @@ let simulation;
  * default: 1h/s
  * argument of periapsis is the angle between the line earth_center-periapsis and the x-axis
  */ 
+
+// tests
+// intersection at the end_orbit periapsis; test with axis=30,000, ecc=0 and axis=50,000, ecc=0.4
+// intersection at the end_orbit apoapsis; test with axis=28,000, ecc=0 and axis=20,000, ecc=0.4
 
 class ManeuverSimulation {
     constructor(orbits, burns, maxLength, earthPos) {
@@ -93,7 +97,7 @@ class ManeuverSimulation {
                 ctx.beginPath();
                 ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, orbit.endArg, orbit.startArg, true);
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = orbit.type == "transfer1" ? "magenta" : "yellow";
+                ctx.strokeStyle = orbit.type == "transfer1" ? "magenta" : "darkorange";
                 ctx.stroke();
                 ctx.setLineDash([]);
                 ctx.beginPath();
@@ -103,7 +107,7 @@ class ManeuverSimulation {
                 ctx.beginPath();
                 ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, 0, 2 * Math.PI);
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = orbit.type == "start" ? "dodgerblue" : "green";
+                ctx.strokeStyle = orbit.type == "start" ? "dodgerblue" : "yellow";
                 ctx.stroke();
             }
             ctx.closePath();
@@ -115,6 +119,30 @@ class ManeuverSimulation {
             this.orbits.forEach((orbit) => {
                 drawOrbit(orbit);
             })
+        }
+
+        // distance scale
+        const scaleX = 490;
+        ctx.beginPath(); 
+        ctx.rect(scaleX, 30, 100, 5);
+        ctx.fillStyle = "white";
+        ctx.fill();
+        // distance scale text
+        ctx.font = "16px Courier New";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "white";
+        ctx.fillText(this.scale, scaleX + 50, 25); 
+        
+        // simulation speed scale
+        const speedScaleX = 445;
+        const speedScaleY = 25;
+        ctx.font = "16px Courier New";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "white";
+        if (this.speedMultiplier == 24){
+            ctx.fillText("1 day/s", speedScaleX, speedScaleY); 
+        } else {
+            ctx.fillText(this.speedMultiplier + " h/s", speedScaleX, speedScaleY); 
         }
 
         // increments for next animation frame
