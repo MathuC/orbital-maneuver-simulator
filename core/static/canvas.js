@@ -5,8 +5,6 @@ const G = 6.67430e-11
 const EARTH_DIAMETER = 6371 * 2;
 const EARTH_MASS = 5.972e24;
 
-let simulation;
-
 /* 
  * redraw every 10 ms
  * leave 50 pixels around the canvas so the orbits aren't stuck to the
@@ -53,9 +51,100 @@ class ManeuverSimulation {
         this.earthArg = 0;
         this.earthDiameter = EARTH_DIAMETER/this.kmPerPixel;
         this.earthPos = [earthPos[0]/this.kmPerPixel, -earthPos[1]/this.kmPerPixel] // because of how to canvas work, y's sign needs to be flipped
+        
+        // satellite
+        this.satLength = 35;
+        // polar function describing orbital path - Kepler's first law
+        this.satRadius = function(theta) {
+            let orbit = this.orbits[this.currentOrbitId];
+            return ((orbit.semiMajorAxis/this.kmPerPixel) * (1 - orbit.e**2))/(1 + orbit.e * Math.cos(theta));
+        }
+
+        this.meanAnomalie = function() {
+            let orbit = this.orbits[this.currentOrbitId];
+            return (this.time * 36 * 2 * Math.PI)/orbit.orbitalPeriod + (orbit.startArg ? orbit.startArg : 0);
+        }
+
+        this.eccentricAnomalie = function () {
+            let orbit = this.orbits[this.currentOrbitId];
+            // Newton's method with Kepler's equation M = E - e * sin(E). 
+            // It is a transcendental equation: no closed form solution, so numerical methods are necessary to estimate E
+            const f = (E) => E - orbit.e * Math.sin(E) - this.meanAnomalie();
+            const df_dE = (E) => 1 - orbit.e * Math.cos(E);
+            let E = this.meanAnomalie(); // initial guess for E
+            let E_next;
+            // 8 iterations reduce max error to under 1e-15 for the highest eccentricity possible (0.869)
+            for (let i = 0; i < 8; i++) {
+                E_next = E - f(E)/df_dE(E);
+                E = E_next;
+            }
+            return E;
+        }
+
+        this.trueAnomalie = function () {
+            let orbit = this.orbits[this.currentOrbitId];
+            if (orbit.orbitIsCircular) {
+                return this.meanAnomalie(); // for circular orbits, true anomalie is the same as mean anomalie
+            } else {
+                let theta = 2 * Math.atan2(Math.sqrt(1 + orbit.e) * Math.tan(this.eccentricAnomalie()/2), Math.sqrt(1 - orbit.e));
+                if (theta < 0) {
+                    theta += 2* Math.PI;
+                } 
+                return theta;
+            }
+        }
+
+        // sattelite position according to the center of the earth
+        this.satPosition = function() {
+            let theta = this.trueAnomalie();
+            let radius = this.satRadius(theta);
+            return [Math.cos(theta) * radius, -Math.sin(theta) * radius];
+        }
+
+        // velocity vector
+        this.velocity = () => {
+            let orbit = this.orbits[this.currentOrbitId];
+            let theta = this.trueAnomalie();
+            let velocityFactor = Math.sqrt(2/this.satRadius(theta) - 1/(orbit.semiMajorAxis/this.kmPerPixel));  // Proportional to true speed
+            let maxVelocityFactor = Math.sqrt(2/(orbit.periapsis/this.kmPerPixel) - 1/(orbit.semiMajorAxis/this.kmPerPixel)); // when radius is equal to periapsis, speed will be the greatest
+            let velocityRatio = velocityFactor/maxVelocityFactor;
+            let [x,y] = this.satPosition();
+            let m = -((orbit.semiMinorAxis ** 2) * x)/((orbit.semiMajorAxis ** 2) * y); // slope of the velocity vector
+            let velocityRatioX = velocityRatio/(Math.sqrt(1 + m**2)); 
+            if (theta % (2 * Math.PI) < Math.PI) { // determining x's direction in the orbit
+                velocityRatioX =  - velocityRatioX;
+            }
+            let velocityRatioY = m * velocityRatioX;
+            return [velocityRatioX, velocityRatioY];
+        }
+
+        // acceleration vector
+        this.acceleration = () => {
+            let orbit = this.orbits[this.currentOrbitId];
+            let theta = this.trueAnomalie();
+            let accelerationFactor = 1/(this.satRadius(theta) ** 2); // Proportional to true acceleration magnitude - Newton's law of universal gravitation
+            let maxAccelerationFactor = 1/((orbit.periapsis/this.kmPerPixel) ** 2); // When radius will be equal to periapsis, acceleration will be the greatest
+            let accelerationRatio = accelerationFactor/maxAccelerationFactor;
+            let accelerationRatioX = -accelerationRatio * Math.cos(theta);
+            let accelerationRatioY = accelerationRatio * Math.sin(theta);
+            return [accelerationRatioX, accelerationRatioY];
+        }
     }
 
     draw() {
+
+        console.log(this.meanAnomalie());
+
+        if (this.startPhase && this.meanAnomalie() > Math.PI){
+            this.startPhase = false;
+        }
+
+        // check if needed to switch to next orbit
+        if (!this.startPhase && this.meanAnomalie() > this.orbits[this.currentOrbitId].endArg && this.currentOrbitId < this.orbits.length - 1) {
+            this.currentOrbitId++;
+            this.time = 0;
+        }
+
         ctx.clearRect(0, 0, 600, 600);
 
         // stars
@@ -85,7 +174,6 @@ class ManeuverSimulation {
         ctx.drawImage(earthImg, -this.earthDiameter/2, -this.earthDiameter/2, this.earthDiameter, this.earthDiameter);
         ctx.restore();
 
-
         let drawOrbit = (orbit) => {
             ctx.save();
             ctx.translate(canvas.width/2, canvas.height/2);
@@ -95,13 +183,13 @@ class ManeuverSimulation {
             if (orbit.type.includes("transfer")) {
                 ctx.setLineDash([5,5]);
                 ctx.beginPath();
-                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, orbit.endArg, orbit.startArg, true);
+                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, -orbit.endArg, -orbit.startArg, true); // negation because of ctx.ellipse keeps angles clockwise when when drawing is counterclockwise
                 ctx.lineWidth = 2;
                 ctx.strokeStyle = orbit.type == "transfer1" ? "magenta" : "darkorange";
                 ctx.stroke();
                 ctx.setLineDash([]);
                 ctx.beginPath();
-                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, orbit.startArg, orbit.endArg, true);
+                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, -orbit.startArg, -orbit.endArg, true);
                 ctx.stroke();
             } else {
                 ctx.beginPath();
@@ -119,6 +207,53 @@ class ManeuverSimulation {
             this.orbits.forEach((orbit) => {
                 drawOrbit(orbit);
             })
+        }
+
+        // satellite
+        ctx.save();
+        ctx.translate(canvas.width/2, canvas.height/2);
+        ctx.translate(...this.earthPos)
+        ctx.rotate(-this.orbits[this.currentOrbitId].argumentOfPeriapsis);
+        ctx.translate(...this.satPosition());
+        ctx.rotate(this.orbits[this.currentOrbitId].argumentOfPeriapsis);
+        ctx.drawImage(satImg, -this.satLength/2, -this.satLength/2, this.satLength, this.satLength);
+        ctx.restore();
+
+        // draw vector: line and a arrow head
+        function drawVector(fromX, fromY, toX, toY, color, argumentOfPeriapsis, earthPos) {
+            ctx.save();
+            ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.translate(...earthPos);
+            ctx.rotate(-argumentOfPeriapsis);
+            let headLen = 10;
+            let dx = toX - fromX;
+            let dy = toY - fromY;
+            let angle = Math.atan2(dy, dx);
+            ctx.beginPath();
+            ctx.strokeStyle = color;
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY- headLen * Math.sin(angle - Math.PI / 6));
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.restore();
+            ctx.restore();
+        }
+        
+        // velocity vector
+        if (this.showVelocity){
+            let [velocityStartX, velocityStartY] = this.satPosition();
+            let [velocityEndX, velocityEndY] = [velocityStartX + this.maxVectorSize * this.velocity()[0], velocityStartY + this.maxVectorSize * this.velocity()[1]]
+            drawVector(velocityStartX, velocityStartY, velocityEndX, velocityEndY, "blue", this.orbits[this.currentOrbitId].argumentOfPeriapsis, this.earthPos);
+        }
+
+        // acceleration vector
+        if (this.showAcceleration){
+            let [accelerationStartX, accelerationStartY] = this.satPosition();
+            let [accelerationEndX, accelerationEndY] = [accelerationStartX + this.maxVectorSize * this.acceleration()[0], accelerationStartY + this.maxVectorSize * this.acceleration()[1]]
+            drawVector(accelerationStartX, accelerationStartY, accelerationEndX, accelerationEndY, "red", this.orbits[this.currentOrbitId].argumentOfPeriapsis, this.earthPos);
         }
 
         // distance scale
@@ -207,6 +342,51 @@ class OrbitSimulation {
         let earthY = -(orbit.semiMajorAxis - orbit.periapsis) * Math.sin(orbit.argumentOfPeriapsis)/kmPerPixel;
         this.earthPos = [earthX, earthY];
 
+        // satellite
+        this.satLength = 35;
+        // polar function describing orbital path - Kepler's first law
+        this.satRadius = function(theta) {
+            return (this.pixelOrbit.semiMajorAxis * (1 - orbit.e**2))/(1 + orbit.e * Math.cos(theta));
+        }
+
+        this.meanAnomalie = function() {
+            return (this.time * 36 * 2 * Math.PI)/orbit.orbitalPeriod;
+        }
+
+        this.eccentricAnomalie = function () {
+            // Newton's method with Kepler's equation M = E - e * sin(E). 
+            // It is a transcendental equation: no closed form solution, so numerical methods are necessary to estimate E
+            const f = (E) => E - orbit.e * Math.sin(E) - this.meanAnomalie();
+            const df_dE = (E) => 1 - orbit.e * Math.cos(E);
+            let E = this.meanAnomalie(); // initial guess for E
+            let E_next;
+            // 8 iterations reduce max error to under 1e-15 for the highest eccentricity possible (0.869)
+            for (let i = 0; i < 8; i++) {
+                E_next = E - f(E)/df_dE(E);
+                E = E_next;
+            }
+            return E;
+        }
+
+        this.trueAnomalie = function () {
+            if (orbit.orbitIsCircular) {
+                return this.meanAnomalie(); // for circular orbits, true anomalie is the same as mean anomalie
+            } else {
+                let theta = 2 * Math.atan2(Math.sqrt(1 + orbit.e) * Math.tan(this.eccentricAnomalie()/2), Math.sqrt(1 - orbit.e));
+                if (theta < 0) {
+                    theta += 2* Math.PI;
+                } 
+                return theta;
+            }
+        }
+
+        // sattelite position according to the center of the earth
+        this.satPosition = function() {
+            let theta = this.trueAnomalie();
+            let radius = this.satRadius(theta);
+            return [Math.cos(theta) * radius, -Math.sin(theta) * radius];
+        }
+
         // velocity vector
         this.velocity = function() {
             let theta = this.trueAnomalie();
@@ -233,55 +413,6 @@ class OrbitSimulation {
             let accelerationRatioY = accelerationRatio * Math.sin(theta);
             return [accelerationRatioX, accelerationRatioY];
         }
-
-        // satellite
-        this.satLength = 35;
-        // polar function describing orbital path - Kepler's first law
-        this.satRadius = function(theta) {
-            return (this.pixelOrbit.semiMajorAxis * (1 - orbit.e**2))/(1 + orbit.e * Math.cos(theta));
-        }
-
-        this.meanAnomalie = function() {
-            return (this.time * 36 * 2 * Math.PI)/orbit.orbitalPeriod;
-        }
-
-        this.eccentricAnomalie = function () {
-            if (this.time == 0) {
-                return 0;
-            } else {
-                // Newton's method with Kepler's equation M = E - e * sin(E). 
-                // It is a transcendental equation: no closed form solution, so numerical methods are necessary to estimate E
-                const f = (E) => E - orbit.e * Math.sin(E) - this.meanAnomalie();
-                const df_dE = (E) => 1 - orbit.e * Math.cos(E);
-                let E = this.meanAnomalie(); // initial guess for E
-                let E_next;
-                // 8 iterations reduce max error to under 1e-15 for the highest eccentricity possible (0.869)
-                for (let i = 0; i < 8; i++) {
-                    E_next = E - f(E)/df_dE(E);
-                    E = E_next;
-                }
-                return E;
-            }
-        }
-
-        this.trueAnomalie = function () {
-            if (orbit.orbitIsCircular) {
-                return this.meanAnomalie(); // for circular orbits, true anomalie is the same as mean anomalie
-            } else {
-                let theta = 2 * Math.atan2(Math.sqrt(1 + orbit.e) * Math.tan(this.eccentricAnomalie()/2), Math.sqrt(1 - orbit.e));
-                if (theta < 0) {
-                    theta += 2* Math.PI;
-                } 
-                return theta;
-            }
-        }
-
-        this.satPosition = function() {
-            let theta = this.trueAnomalie();
-            let radius = this.satRadius(theta);
-            return [Math.cos(theta) * radius + this.pixelOrbit.focalDistance, -Math.sin(theta) * radius];
-        }
-        
     }
 
     draw() {
@@ -331,6 +462,7 @@ class OrbitSimulation {
         // satellite
         ctx.save();
         ctx.translate(canvas.width/2, canvas.height/2);
+        ctx.translate(...this.earthPos);
         ctx.rotate(-this.orbit.argumentOfPeriapsis);
         ctx.translate(...this.satPosition());
         ctx.rotate(this.orbit.argumentOfPeriapsis);
@@ -338,9 +470,10 @@ class OrbitSimulation {
         ctx.restore();
 
         // draw vector: line and a arrow head
-        function drawVector(fromX, fromY, toX, toY, color, argumentOfPeriapsis) {
+        function drawVector(fromX, fromY, toX, toY, color, argumentOfPeriapsis, earthPos) {
             ctx.save();
             ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.translate(...earthPos);
             ctx.rotate(-argumentOfPeriapsis);
             let headLen = 10;
             let dx = toX - fromX;
@@ -363,14 +496,14 @@ class OrbitSimulation {
         if (this.showVelocity){
             let [velocityStartX, velocityStartY] = this.satPosition();
             let [velocityEndX, velocityEndY] = [velocityStartX + this.maxVectorSize * this.velocity()[0], velocityStartY + this.maxVectorSize * this.velocity()[1]]
-            drawVector(velocityStartX, velocityStartY, velocityEndX, velocityEndY, "blue", this.orbit.argumentOfPeriapsis);
+            drawVector(velocityStartX, velocityStartY, velocityEndX, velocityEndY, "blue", this.orbit.argumentOfPeriapsis, this.earthPos);
         }
 
         // acceleration vector
         if (this.showAcceleration){
             let [accelerationStartX, accelerationStartY] = this.satPosition();
             let [accelerationEndX, accelerationEndY] = [accelerationStartX + this.maxVectorSize * this.acceleration()[0], accelerationStartY + this.maxVectorSize * this.acceleration()[1]]
-            drawVector(accelerationStartX, accelerationStartY, accelerationEndX, accelerationEndY, "red", this.orbit.argumentOfPeriapsis);
+            drawVector(accelerationStartX, accelerationStartY, accelerationEndX, accelerationEndY, "red", this.orbit.argumentOfPeriapsis, this.earthPos);
         }
 
         // distance scale

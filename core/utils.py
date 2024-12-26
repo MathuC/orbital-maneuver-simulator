@@ -181,7 +181,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
     newOrbit = end_orbit.copy() # axis(periapsis(end_orbit), apoapsis(orbits[-1])), eccentricity(periapsis(end_orbit), apoapsis(orbits[-1]))
     newOrbit["start_arg"] = math.pi # always at apoapsis
     if (orbits[-1]["ecc"] == 0):
-        orbits[-1]["end_arg"] = normalize_angle(orbits[-1]["arg"] - end_orbit["arg"] + math.pi)
+        orbits[-1]["end_arg"] = normalize_angle(math.pi + end_orbit['arg'] - orbits[-1]['arg'] )
     else:
         if (abs(apoapsis(orbits[-1]) - apoapsis(end_orbit)) < abs(periapsis(orbits[-1]) - apoapsis(end_orbit))): 
         # apoapsis of orbits[-1] is equal to end_orbit apoapsis; this comparison is done instead of an equality check because of precision errors
