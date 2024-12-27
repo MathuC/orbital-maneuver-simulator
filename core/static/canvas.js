@@ -32,10 +32,6 @@ class ManeuverSimulation {
         this.maxVectorSize = 150;
 
         // orbits
-        this.startPhase = true; 
-        // if the start phase is true, no burns can be executed 
-        // this will stay true till the start orbit's mean anomalie is at pi/2
-        // so a 0 angle burn isn't executed as soon as the simulation starts
         this.orbits = orbits;
         this.currentOrbitId = 0; // pointer to the current orbit
         this.burns = burns;
@@ -111,7 +107,7 @@ class ManeuverSimulation {
             let [x,y] = this.satPosition();
             let m = -((orbit.semiMinorAxis ** 2) * x)/((orbit.semiMajorAxis ** 2) * y); // slope of the velocity vector
             let velocityRatioX = velocityRatio/(Math.sqrt(1 + m**2)); 
-            if (theta % (2 * Math.PI) < Math.PI) { // determining x's direction in the orbit
+            if (theta % (2 * Math.PI) <= Math.PI) { // determining x's direction in the orbit // < causes errors at Math.PI but <= doesn't
                 velocityRatioX =  - velocityRatioX;
             }
             let velocityRatioY = m * velocityRatioX;
@@ -133,14 +129,8 @@ class ManeuverSimulation {
 
     draw() {
 
-        console.log(this.meanAnomalie());
-
-        if (this.startPhase && this.meanAnomalie() > Math.PI){
-            this.startPhase = false;
-        }
-
         // check if needed to switch to next orbit
-        if (!this.startPhase && this.meanAnomalie() > this.orbits[this.currentOrbitId].endArg && this.currentOrbitId < this.orbits.length - 1) {
+        if (this.meanAnomalie() > this.orbits[this.currentOrbitId].endArg && this.currentOrbitId < this.orbits.length - 1) {
             this.currentOrbitId++;
             this.time = 0;
         }

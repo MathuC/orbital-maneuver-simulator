@@ -117,20 +117,22 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
         return math.sqrt(G * EARTH_MASS * (2/r - 1/semi_major_axis))
 
     # Make apoapsis equal if they are not the same; first burn at the periapsis of orbits[-1]
+    # No end_arg can be equal to 0 since it will skip the orbit, so make it equal to 2pi
     if (apoapsis(orbits[-1]) != apoapsis(end_orbit)):
         newOrbit = {}
         newOrbit["axis"] = axis(periapsis(orbits[-1]), apoapsis(end_orbit))
 
         # if orbits[-1] is a circle, then do the rotation of the orbit and the same time of this burn
         if (periapsis(orbits[-1]) == apoapsis(orbits[-1])):
-            orbits[-1]["end_arg"] = end_orbit["arg"]
+            tempArg = normalize_angle(end_orbit["arg"] - orbits[-1]['arg'])
+            orbits[-1]["end_arg"] = tempArg if tempArg != 0 else 2 * math.pi # you don't want the end arg of an orbit to be 0 
             if (periapsis(orbits[-1]) <= apoapsis(end_orbit)): # newOrbit is a circle or newOrbit's periapsis and apoapsis stay on the same sides
                 newOrbit["arg"] = end_orbit["arg"]
             else: # newOrbit's periapsis and apoapsis switch sides
                 newOrbit["arg"] = normalize_angle(end_orbit["arg"] + math.pi)
         
         else:
-            orbits[-1]["end_arg"] = 0
+            orbits[-1]["end_arg"] = 2 * math.pi
             if (periapsis(orbits[-1]) <= apoapsis(end_orbit)): # newOrbit is a circle or newOrbit's periapsis and apoapsis stay on the same sides
                 newOrbit["arg"] = orbits[-1]["arg"]
             else: # newOrbit's periapsis and apoapsis switch sides
@@ -157,15 +159,16 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
         and orbits[-1]["ecc"] != 0 and end_orbit["ecc"] != 0):
 
         newOrbit = {}
-        newOrbit["axis"] = apoapsis(orbits[-1])
         newOrbit["ecc"] = 0
         newOrbit["start_arg"] = 0
         if (orbits[-1]["start_arg"] == 0): 
             orbits[-1]["end_arg"] = math.pi
+            newOrbit["axis"] = apoapsis(orbits[-1])
             newOrbit["arg"] = normalize_angle(orbits[-1]["arg"] + math.pi)
         
         else:
-            orbits[-1]["end_arg"] = 0
+            orbits[-1]["end_arg"] = 2 * math.pi
+            newOrbit["axis"] = periapsis(orbits[-1])
             newOrbit["arg"] = orbits[-1]["arg"]
 
         v1 = velocity(newOrbit["axis"], orbits[-1]["axis"])
@@ -178,21 +181,34 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
         return {"orbits": orbits, "burns": burns, "max_length": max_length, "earth_pos": earth_pos}
 
     # Make the periapsis the same
-    newOrbit = end_orbit.copy() # axis(periapsis(end_orbit), apoapsis(orbits[-1])), eccentricity(periapsis(end_orbit), apoapsis(orbits[-1]))
-    newOrbit["start_arg"] = math.pi # always at apoapsis
+    newOrbit = end_orbit.copy()
+
     if (orbits[-1]["ecc"] == 0):
-        orbits[-1]["end_arg"] = normalize_angle(math.pi + end_orbit['arg'] - orbits[-1]['arg'] )
+        tempArg = normalize_angle(math.pi + end_orbit['arg'] - orbits[-1]['arg'])
+        orbits[-1]["end_arg"] = tempArg if tempArg != 0 else 2 * math.pi
+        newOrbit["start_arg"] = math.pi # always at apoapsis according to algorithm used, except when end_orbit is a circle
     else:
         if (abs(apoapsis(orbits[-1]) - apoapsis(end_orbit)) < abs(periapsis(orbits[-1]) - apoapsis(end_orbit))): 
         # apoapsis of orbits[-1] is equal to end_orbit apoapsis; this comparison is done instead of an equality check because of precision errors
             orbits[-1]["end_arg"] = math.pi
+            if (end_orbit["ecc"] != 0): 
+                newOrbit["start_arg"] = math.pi 
+            else: 
+                newOrbit["start_arg"] = normalize_angle(orbits[-1]['arg'] - math.pi - end_orbit['arg'])
         else: # periapsis of orbits[-1] is equal to end_orbit apoapsis
-            orbits[-1]["end_arg"] = 0
+            orbits[-1]["end_arg"] = 2 * math.pi
+            if (end_orbit["ecc"] != 0): 
+                newOrbit["start_arg"] = math.pi 
+            else: 
+                newOrbit["start_arg"] = normalize_angle(orbits[-1]['arg'] - end_orbit['arg'])
+
 
     v1 = velocity(apoapsis(end_orbit), orbits[-1]["axis"])
     v2 = velocity(apoapsis(end_orbit), end_orbit["axis"])
     burns.append(v2-v1)
     orbits.append(newOrbit)
+
+
 
     max_length, earth_pos = max_length_earth_pos(orbits).values()
     return {"orbits": orbits, "burns": burns, "max_length": max_length, "earth_pos": earth_pos}
