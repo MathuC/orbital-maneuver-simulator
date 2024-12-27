@@ -17,12 +17,13 @@ const EARTH_MASS = 5.972e24;
 
 // tests
 // intersection at the end_orbit periapsis; test with axis=30,000, ecc=0 and axis=50,000, ecc=0.4
-// intersection at the end_orbit apoapsis; test with axis=28,000, ecc=0 and axis=20,000, ecc=0.4
+// intersection at the end_orbit apoapsis; test with axis=30,000, ecc=0 and axis=20,000, ecc=0.5
 
 class ManeuverSimulation {
     constructor(orbits, burns, maxLength, earthPos) {
         this.animation;
         this.time = 0;
+        this.totalTime = 0;
         this.isRunning = false;
         this.speedMultiplier = parseInt(speedSlider.value);
         this.scale = Math.floor(maxLength/5) + " km";
@@ -179,37 +180,42 @@ class ManeuverSimulation {
             ctx.translate(...this.earthPos);
             ctx.rotate(-orbit.argumentOfPeriapsis);
             ctx.translate(-orbit.focalDistance/(this.kmPerPixel), 0);
-            let inactiveOpacity = 0.5;
+            let inactiveOpacity = 0.55;
+            let active = false;
 
             if (orbit.type == "start") {
+                active = this.currentOrbitId == 0;
                 ctx.beginPath();
                 ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, 0, 2 * Math.PI);
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = "rgba(30, 144, 255, " + (this.currentOrbitId == 0 ? 1 : inactiveOpacity ) + ")";
+                ctx.lineWidth = active ? 3 : 2;
+                ctx.strokeStyle = "rgba(30, 144, 255, " + (active ? 1 : inactiveOpacity) + ")";
                 ctx.stroke();
             } else if (orbit.type == "end") {
+                active = this.currentOrbitId == this.orbits.length - 1;
                 ctx.beginPath();
                 ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, 0, 2 * Math.PI);
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = "rgba(255, 255, 0, " + (this.currentOrbitId == this.orbits.length - 1 ? 1 : inactiveOpacity ) + ")";
+                ctx.lineWidth = active ? 3 : 2;
+                ctx.strokeStyle = "rgba(255, 255, 0, " + (active ? 1 : inactiveOpacity) + ")";
                 ctx.stroke();
             } else if (orbit.type == "transfer1") {
+                active = this.currentOrbitId == 1;
                 ctx.setLineDash([5,5]);
                 ctx.beginPath();
                 ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, -orbit.endArg, -orbit.startArg, true); // negation because of ctx.ellipse keeps angles clockwise when when drawing is counterclockwise
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = "rgba(255, 0, 255, " + (this.currentOrbitId == 1 ? 1 : inactiveOpacity) + ")"
+                ctx.lineWidth = active ? 3 : 2;
+                ctx.strokeStyle = "rgba(255, 0, 255, " + (active ? 1 : inactiveOpacity) + ")"
                 ctx.stroke();
                 ctx.setLineDash([]);
                 ctx.beginPath();
                 ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, -orbit.startArg, -orbit.endArg, true);
                 ctx.stroke();
             } else {
+                active = this.currentOrbitId == 2 && this.orbits.length == 4;
                 ctx.setLineDash([5,5]);
                 ctx.beginPath();
                 ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, -orbit.endArg, -orbit.startArg, true); // negation because of ctx.ellipse keeps angles clockwise when when drawing is counterclockwise
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = "rgba(255, 140, 0, " + (this.currentOrbitId == 2 && this.orbits.length == 4 ? 1 : inactiveOpacity) + ")"
+                ctx.lineWidth = active ? 3 : 2;
+                ctx.strokeStyle = "rgba(255, 140, 0, " + (active ? 1 : inactiveOpacity) + ")"
                 ctx.stroke();
                 ctx.setLineDash([]);
                 ctx.beginPath();
@@ -274,33 +280,32 @@ class ManeuverSimulation {
             drawVector(accelerationStartX, accelerationStartY, accelerationEndX, accelerationEndY, "red", this.orbits[this.currentOrbitId].argumentOfPeriapsis, this.earthPos);
         }
 
-        // distance scale
-        const scaleX = 490;
-        ctx.beginPath(); 
-        ctx.rect(scaleX, 30, 100, 5);
-        ctx.fillStyle = "white";
-        ctx.fill();
-        // distance scale text
-        ctx.font = "16px Courier New";
-        ctx.textAlign = "center";
-        ctx.fillStyle = "white";
-        ctx.fillText(this.scale, scaleX + 50, 25); 
-        
-        // simulation speed scale
-        const speedScaleX = 445;
-        const speedScaleY = 25;
-        ctx.font = "16px Courier New";
-        ctx.textAlign = "center";
-        ctx.fillStyle = "white";
-        if (this.speedMultiplier == 24){
-            ctx.fillText("1 day/s", speedScaleX, speedScaleY); 
+        displaySpeedScale(this.speedMultiplier);
+        displayDistanceScale(this.scale);
+        displayTotalTime(this.totalTime);
+
+        // display current orbit name
+        let displayOrbitName;
+        if (this.orbits[this.currentOrbitId].type == "start") {
+            displayOrbitName = "Initial Orbit";
+        } else if (this.orbits[this.currentOrbitId].type == "end") {
+            displayOrbitName = "Final Orbit";
+        } else if (this.orbits[this.currentOrbitId].type == "transfer1") {
+            displayOrbitName = "Transfer Orbit 1";
         } else {
-            ctx.fillText(this.speedMultiplier + " h/s", speedScaleX, speedScaleY); 
+            displayOrbitName = "Transfer Orbit 2";
         }
+        const displayOrbitX = 10;
+        const displayOrbitY = 25;
+        ctx.font = "16px Courier New";
+        ctx.textAlign = "left";
+        ctx.fillStyle = "white";
+        ctx.fillText(displayOrbitName, displayOrbitX, displayOrbitY);
 
         // increments for next animation frame
         this.earthArg += this.speedMultiplier * 2 * Math.PI/(100 * 24);
         this.time += this.speedMultiplier;
+        this.totalTime += this.speedMultiplier;
     }
 
     start() {
@@ -326,6 +331,7 @@ class OrbitSimulation {
     constructor(orbit, maxLength) {
         this.animation;
         this.time = 0;
+        this.totalTime = 0;
         this.isRunning = false;
         this.speedMultiplier = parseInt(speedSlider.value);
         this.scale = Math.floor(maxLength/5) + " km";
@@ -525,33 +531,14 @@ class OrbitSimulation {
             drawVector(accelerationStartX, accelerationStartY, accelerationEndX, accelerationEndY, "red", this.orbit.argumentOfPeriapsis, this.earthPos);
         }
 
-        // distance scale
-        const scaleX = 490;
-        ctx.beginPath(); 
-        ctx.rect(scaleX, 30, 100, 5);
-        ctx.fillStyle = "white";
-        ctx.fill();
-        // distance scale text
-        ctx.font = "16px Courier New";
-        ctx.textAlign = "center";
-        ctx.fillStyle = "white";
-        ctx.fillText(this.scale, scaleX + 50, 25); 
+        displaySpeedScale(this.speedMultiplier);
+        displayDistanceScale(this.scale);
+        displayTotalTime(this.totalTime);
         
-        // simulation speed scale
-        const speedScaleX = 445;
-        const speedScaleY = 25;
-        ctx.font = "16px Courier New";
-        ctx.textAlign = "center";
-        ctx.fillStyle = "white";
-        if (this.speedMultiplier == 24){
-            ctx.fillText("1 day/s", speedScaleX, speedScaleY); 
-        } else {
-            ctx.fillText(this.speedMultiplier + " h/s", speedScaleX, speedScaleY); 
-        }
-
         // increments for next animation frame
         this.earthArg += this.speedMultiplier * 2 * Math.PI/(100 * 24);
         this.time += this.speedMultiplier;
+        this.totalTime += this.speedMultiplier;
     }
 
     start() {
@@ -633,4 +620,44 @@ class Orbit {
             this.startArg =  parseFloat(startArg);
         }
     }
+}
+
+// display distance scale
+function displayDistanceScale(scale) {
+    const scaleX = 490;
+    const scaleY = 25;
+    ctx.beginPath(); 
+    ctx.rect(scaleX, 30, 100, scaleY - 20);
+    ctx.fillStyle = "white";
+    ctx.fill();
+    // distance scale text
+    ctx.font = "16px Courier New";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "white";
+    ctx.fillText(scale, scaleX + 50, scaleY); 
+}
+
+ 
+// display speed scale
+function displaySpeedScale(speedMultiplier) {
+    const speedScaleX = 445;
+    const speedScaleY = 25;
+    ctx.font = "16px Courier New";
+    ctx.textAlign = "center";
+    ctx.fillStyle = "white";
+    if (speedMultiplier == 24){
+        ctx.fillText("1 day/s", speedScaleX, speedScaleY); 
+    } else {
+        ctx.fillText(speedMultiplier + " h/s", speedScaleX, speedScaleY); 
+    }
+}
+
+// display total time passed
+function displayTotalTime(totalTime) {
+    const totalTimeX = 590;
+    const totalTimeY = 584;
+    ctx.font = "16px Courier New";
+    ctx.textAlign = "right";
+    ctx.fillStyle = "white";
+    ctx.fillText("Time: " + Math.round(totalTime/100) + " h", totalTimeX, totalTimeY);
 }
