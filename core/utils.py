@@ -157,8 +157,9 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
         return {"orbits": orbits, "burns": burns, "max_length": max_length, "earth_pos": earth_pos}
     
     # Make the orbit circular if need to change arg later
-    if (orbits[-1]["arg"] != end_orbit["arg"] and normalize_angle(orbits[-1]["arg"] + math.pi) != end_orbit["arg"] 
-        and orbits[-1]["ecc"] != 0 and end_orbit["ecc"] != 0):
+    if (orbits[-1]["arg"] != end_orbit["arg"] and 
+        (apoapsis(orbits[-1]) == apoapsis(end_orbit) or normalize_angle(orbits[-1]["arg"] + math.pi) != end_orbit["arg"]) and
+        orbits[-1]["ecc"] != 0 and end_orbit["ecc"] != 0):
 
         newOrbit = {}
         newOrbit["ecc"] = 0
