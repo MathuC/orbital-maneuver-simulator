@@ -3,6 +3,7 @@ import numpy as np
 
 G = 6.67430e-11
 EARTH_MASS = 5.972e24
+mps_to_kph_factor = 3600/1000
 
 def normalize_angle(angle):
     return angle % (2 * math.pi)
@@ -94,6 +95,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
     
     # orbit stack
     orbits = [start_orbit.copy()]
+    orbits[0]["start_arg"] = 0
 
     # burn stack
     burns = []
@@ -147,7 +149,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
 
         v1 = velocity(periapsis(orbits[-1]), orbits[-1]["axis"])
         v2 = velocity(periapsis(orbits[-1]), newOrbit["axis"])
-        burns.append(v2-v1)
+        burns.append(round((v2-v1) * mps_to_kph_factor))
         orbits.append(newOrbit)
     
     if (isEqual(orbits[-1], end_orbit)):
@@ -161,7 +163,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
         newOrbit = {}
         newOrbit["ecc"] = 0
         newOrbit["start_arg"] = 0
-        if (orbits[-1]["start_arg"] == 0): 
+        if (orbits[-1]["start_arg"] == 0):
             orbits[-1]["end_arg"] = math.pi
             newOrbit["axis"] = apoapsis(orbits[-1])
             newOrbit["arg"] = normalize_angle(orbits[-1]["arg"] + math.pi)
@@ -173,7 +175,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
 
         v1 = velocity(newOrbit["axis"], orbits[-1]["axis"])
         v2 = velocity(newOrbit["axis"], newOrbit["axis"]) # same r and a because circular orbit
-        burns.append(v2-v1)
+        burns.append(round((v2-v1) * mps_to_kph_factor))
         orbits.append(newOrbit)
 
     if (isEqual(orbits[-1], end_orbit)):
@@ -205,7 +207,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
 
     v1 = velocity(apoapsis(end_orbit), orbits[-1]["axis"])
     v2 = velocity(apoapsis(end_orbit), end_orbit["axis"])
-    burns.append(v2-v1)
+    burns.append(round((v2-v1) * mps_to_kph_factor))
     orbits.append(newOrbit)
 
 

@@ -101,7 +101,7 @@ class ManeuverSimulation {
             }
         }
 
-        // sattelite position according to the center of the earth
+        // satellite position according to the center of the earth
         this.satPosition = function() {
             let theta = this.trueAnomalie();
             let radius = this.satRadius(theta);
@@ -115,7 +115,8 @@ class ManeuverSimulation {
             let velocityFactor = Math.sqrt(2/this.satRadius(theta) - 1/(orbit.semiMajorAxis/this.kmPerPixel));  // Proportional to true speed
             let velocityRatio = velocityFactor/this.maxVelocityFactor;
             let [x,y] = this.satPosition();
-            let m = -((orbit.semiMinorAxis ** 2) * x)/((orbit.semiMajorAxis ** 2) * y); // slope of the velocity vector
+            let m = -((orbit.semiMinorAxis ** 2) * (x + this.orbits[this.currentOrbitId].focalDistance/this.kmPerPixel))/((orbit.semiMajorAxis ** 2) * y); // slope of the velocity vector 
+            // added this.orbits[this.currentOrbitId].focalDistance to x so that x and y are from the center of the ellipse, so that the equation works mathematically
             let velocityRatioX = velocityRatio/(Math.sqrt(1 + m**2)); 
             if (theta % (2 * Math.PI) <= Math.PI) { // determining x's direction in the orbit // < causes errors at Math.PI but <= doesn't
                 velocityRatioX =  - velocityRatioX;
@@ -126,7 +127,6 @@ class ManeuverSimulation {
 
         // acceleration vector
         this.acceleration = () => {
-            let orbit = this.orbits[this.currentOrbitId];
             let theta = this.trueAnomalie();
             let accelerationFactor = 1/(this.satRadius(theta) ** 2); // Proportional to true acceleration magnitude - Newton's law of universal gravitation
             let accelerationRatio = accelerationFactor/this.maxAccelerationFactor;
@@ -179,22 +179,41 @@ class ManeuverSimulation {
             ctx.translate(...this.earthPos);
             ctx.rotate(-orbit.argumentOfPeriapsis);
             ctx.translate(-orbit.focalDistance/(this.kmPerPixel), 0);
-            if (orbit.type.includes("transfer")) {
+            let inactiveOpacity = 0.5;
+
+            if (orbit.type == "start") {
+                ctx.beginPath();
+                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, 0, 2 * Math.PI);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "rgba(30, 144, 255, " + (this.currentOrbitId == 0 ? 1 : inactiveOpacity ) + ")";
+                ctx.stroke();
+            } else if (orbit.type == "end") {
+                ctx.beginPath();
+                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, 0, 2 * Math.PI);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "rgba(255, 255, 0, " + (this.currentOrbitId == this.orbits.length - 1 ? 1 : inactiveOpacity ) + ")";
+                ctx.stroke();
+            } else if (orbit.type == "transfer1") {
                 ctx.setLineDash([5,5]);
                 ctx.beginPath();
                 ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, -orbit.endArg, -orbit.startArg, true); // negation because of ctx.ellipse keeps angles clockwise when when drawing is counterclockwise
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = orbit.type == "transfer1" ? "magenta" : "darkorange";
+                ctx.strokeStyle = "rgba(255, 0, 255, " + (this.currentOrbitId == 1 ? 1 : inactiveOpacity) + ")"
                 ctx.stroke();
                 ctx.setLineDash([]);
                 ctx.beginPath();
                 ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, -orbit.startArg, -orbit.endArg, true);
                 ctx.stroke();
             } else {
+                ctx.setLineDash([5,5]);
                 ctx.beginPath();
-                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, 0, 2 * Math.PI);
+                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, -orbit.endArg, -orbit.startArg, true); // negation because of ctx.ellipse keeps angles clockwise when when drawing is counterclockwise
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = orbit.type == "start" ? "dodgerblue" : "yellow";
+                ctx.strokeStyle = "rgba(255, 140, 0, " + (this.currentOrbitId == 2 && this.orbits.length == 4 ? 1 : inactiveOpacity) + ")"
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, -orbit.startArg, -orbit.endArg, true);
                 ctx.stroke();
             }
             ctx.closePath();
@@ -393,7 +412,8 @@ class OrbitSimulation {
             let maxVelocityFactor = Math.sqrt(2/this.pixelOrbit.periapsis - 1/this.pixelOrbit.semiMajorAxis); // when radius is equal to periapsis, speed will be the greatest
             let velocityRatio = velocityFactor/maxVelocityFactor;
             let [x,y] = this.satPosition();
-            let m = -((orbit.semiMinorAxis ** 2) * x)/((orbit.semiMajorAxis ** 2) * y); // slope of the velocity vector
+            let m = -((orbit.semiMinorAxis ** 2) * (x + this.pixelOrbit.focalDistance))/((orbit.semiMajorAxis ** 2) * y); // slope of the velocity vector
+            // x + this.pixelOrbit.focalDistance since you want the coordinates to be from the center of the ellipse and not the center of the earth, so that the equation works mathematically
             let velocityRatioX = velocityRatio/(Math.sqrt(1 + m**2)); 
             if (theta % (2 * Math.PI) < Math.PI) { // determining x's direction in the orbit
                 velocityRatioX =  - velocityRatioX;
@@ -606,10 +626,8 @@ class Orbit {
         this.orbitalPeriod = 2 * Math.PI * ((((this.semiMajorAxis * 1000) ** 3)/(G * EARTH_MASS))) ** 0.5;
         this.orbitIsCircular = this.e == 0;
         this.type = type;
-        if (this.type.includes("transfer")) {
+        if (this.type.includes("transfer") || this.type == "start") {
             this.startArg =  parseFloat(startArg);
-            this.endArg =  parseFloat(endArg);
-        } else if (this.type == "start") {
             this.endArg =  parseFloat(endArg);
         } else if (this.type == "end") {
             this.startArg =  parseFloat(startArg);

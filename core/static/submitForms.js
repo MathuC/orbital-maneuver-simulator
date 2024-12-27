@@ -20,7 +20,7 @@ function submitManeuverForm(event) {
             let orbits = [];
             data.orbits.forEach((orbit, id) => {
                 if (id == 0) {
-                    orbits.push(new Orbit(orbit.axis, orbit.ecc, orbit.arg, "start", false, orbit.end_arg));
+                    orbits.push(new Orbit(orbit.axis, orbit.ecc, orbit.arg, "start", orbit.start_arg, orbit.end_arg));
                 } else if (id == data.orbits.length - 1) {
                     orbits.push(new Orbit(orbit.axis, orbit.ecc, orbit.arg, "end", orbit.start_arg, false));
                 } else if (id == 1 && data.orbits.length >= 3) {
