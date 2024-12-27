@@ -29,7 +29,7 @@ class ManeuverSimulation {
         this.showOrbitalPath  = orbitalPathCheckbox.checked;
         this.showVelocity = velocityCheckbox.checked;
         this.showAcceleration = accelerationCheckbox.checked;
-        this.maxVectorSize = 150;
+        this.maxVectorSize = 250;
 
         // orbits
         this.orbits = orbits;
@@ -55,6 +55,17 @@ class ManeuverSimulation {
             let orbit = this.orbits[this.currentOrbitId];
             return ((orbit.semiMajorAxis/this.kmPerPixel) * (1 - orbit.e**2))/(1 + orbit.e * Math.cos(theta));
         }
+
+        // vectors
+        this.maxVelocityFactor = 0
+        this.maxAccelerationFactor = 0
+        this.orbits.forEach((orbit) => {
+            let maxV = Math.sqrt(2/(orbit.periapsis/this.kmPerPixel) - 1/(orbit.semiMajorAxis/this.kmPerPixel));
+            let maxA = 1/((orbit.periapsis/this.kmPerPixel) ** 2);
+            this.maxVelocityFactor = Math.max(maxV, this.maxVelocityFactor);
+            this.maxAccelerationFactor = Math.max(maxA, this.maxAccelerationFactor);
+        })
+        
 
         this.meanAnomalie = function() {
             let orbit = this.orbits[this.currentOrbitId];
@@ -102,8 +113,7 @@ class ManeuverSimulation {
             let orbit = this.orbits[this.currentOrbitId];
             let theta = this.trueAnomalie();
             let velocityFactor = Math.sqrt(2/this.satRadius(theta) - 1/(orbit.semiMajorAxis/this.kmPerPixel));  // Proportional to true speed
-            let maxVelocityFactor = Math.sqrt(2/(orbit.periapsis/this.kmPerPixel) - 1/(orbit.semiMajorAxis/this.kmPerPixel)); // when radius is equal to periapsis, speed will be the greatest
-            let velocityRatio = velocityFactor/maxVelocityFactor;
+            let velocityRatio = velocityFactor/this.maxVelocityFactor;
             let [x,y] = this.satPosition();
             let m = -((orbit.semiMinorAxis ** 2) * x)/((orbit.semiMajorAxis ** 2) * y); // slope of the velocity vector
             let velocityRatioX = velocityRatio/(Math.sqrt(1 + m**2)); 
@@ -119,8 +129,7 @@ class ManeuverSimulation {
             let orbit = this.orbits[this.currentOrbitId];
             let theta = this.trueAnomalie();
             let accelerationFactor = 1/(this.satRadius(theta) ** 2); // Proportional to true acceleration magnitude - Newton's law of universal gravitation
-            let maxAccelerationFactor = 1/((orbit.periapsis/this.kmPerPixel) ** 2); // When radius will be equal to periapsis, acceleration will be the greatest
-            let accelerationRatio = accelerationFactor/maxAccelerationFactor;
+            let accelerationRatio = accelerationFactor/this.maxAccelerationFactor;
             let accelerationRatioX = -accelerationRatio * Math.cos(theta);
             let accelerationRatioY = accelerationRatio * Math.sin(theta);
             return [accelerationRatioX, accelerationRatioY];
@@ -304,7 +313,7 @@ class OrbitSimulation {
         this.showOrbitalPath  = orbitalPathCheckbox.checked;
         this.showVelocity = velocityCheckbox.checked;
         this.showAcceleration = accelerationCheckbox.checked;
-        this.maxVectorSize = 150;
+        this.maxVectorSize = 250;
 
         // orbit 
         this.orbit = orbit;
