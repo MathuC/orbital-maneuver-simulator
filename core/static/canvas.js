@@ -31,6 +31,7 @@ class ManeuverSimulation {
         this.showVelocity = velocityCheckbox.checked;
         this.showAcceleration = accelerationCheckbox.checked;
         this.maxVectorSize = 250;
+        this.maxBurnVectorSize = 100;
 
         // orbits
         this.orbits = orbits;
@@ -65,6 +66,10 @@ class ManeuverSimulation {
             let maxA = 1/((orbit.periapsis/this.kmPerPixel) ** 2);
             this.maxVelocityFactor = Math.max(maxV, this.maxVelocityFactor);
             this.maxAccelerationFactor = Math.max(maxA, this.maxAccelerationFactor);
+        })
+        this.maxBurn = 0
+        this.burns.forEach((burn) => {
+            this.maxBurn = Math.max(this.maxBurn, Math.abs(burn));
         })
         
 
@@ -109,6 +114,11 @@ class ManeuverSimulation {
             return [Math.cos(theta) * radius, -Math.sin(theta) * radius];
         }
 
+        this.orbitPosition = function(orbit, theta) {
+            let radius = ((orbit.semiMajorAxis/this.kmPerPixel) * (1 - orbit.e**2))/(1 + orbit.e * Math.cos(theta));
+            return [Math.cos(theta) * radius, -Math.sin(theta) * radius];
+        }
+
         // velocity vector
         this.velocity = () => {
             let orbit = this.orbits[this.currentOrbitId];
@@ -116,13 +126,20 @@ class ManeuverSimulation {
             let velocityFactor = Math.sqrt(2/this.satRadius(theta) - 1/(orbit.semiMajorAxis/this.kmPerPixel));  // Proportional to true speed
             let velocityRatio = velocityFactor/this.maxVelocityFactor;
             let [x,y] = this.satPosition();
-            let m = -((orbit.semiMinorAxis ** 2) * (x + this.orbits[this.currentOrbitId].focalDistance/this.kmPerPixel))/((orbit.semiMajorAxis ** 2) * y); // slope of the velocity vector 
-            // added this.orbits[this.currentOrbitId].focalDistance to x so that x and y are from the center of the ellipse, so that the equation works mathematically
-            let velocityRatioX = velocityRatio/(Math.sqrt(1 + m**2)); 
-            if (theta % (2 * Math.PI) <= Math.PI) { // determining x's direction in the orbit // < causes errors at Math.PI but <= doesn't
-                velocityRatioX =  - velocityRatioX;
+            let velocityRatioX;
+            let velocityRatioY;
+            if (y != 0) {
+                let m = -((orbit.semiMinorAxis ** 2) * (x + orbit.focalDistance/this.kmPerPixel))/((orbit.semiMajorAxis ** 2) * y); // slope of the velocity vector 
+                // added this.orbits[this.currentOrbitId].focalDistance to x so that x and y are from the center of the ellipse, so that the equation works mathematically
+                velocityRatioX = velocityRatio/(Math.sqrt(1 + m**2)); 
+                if (theta % (2 * Math.PI) <= Math.PI) { // determining x's direction in the orbit // < causes errors at Math.PI but <= doesn't
+                    velocityRatioX *= -1;
+                }
+                velocityRatioY = m * velocityRatioX;
+            } else {
+                velocityRatioX = 0;
+                velocityRatioY = -velocityRatio;
             }
-            let velocityRatioY = m * velocityRatioX;
             return [velocityRatioX, velocityRatioY];
         }
 
@@ -135,6 +152,49 @@ class ManeuverSimulation {
             let accelerationRatioY = accelerationRatio * Math.sin(theta);
             return [accelerationRatioX, accelerationRatioY];
         }
+
+        // burn vectors
+        // similar strategy as velocity vector
+        this.burnVectors = [];
+        this.burns.forEach((burn, id) => {
+            let orbit = this.orbits[id];
+            let theta = orbit['endArg'] % (2 * Math.PI);
+            let [x,y] = this.orbitPosition(orbit, theta);
+            console.log(x, y);
+            let burnRatio = Math.abs(burn)/this.maxBurn;
+
+            let burnRatioX;
+            let burnRatioY;
+
+            if (y != 0) {
+                let m = -((orbit.semiMinorAxis ** 2) * (x + orbit.focalDistance/this.kmPerPixel))/((orbit.semiMajorAxis ** 2) * y);
+                burnRatioX = burnRatio/(Math.sqrt(1 + m**2)); 
+                if (theta % (2 * Math.PI) <= Math.PI) {
+                    burnRatioX *= -1;
+                }
+                burnRatioY = m * burnRatioX;
+            } else { // if y is 0, m will be infinite (vertical slope)
+                burnRatioX = 0;
+                burnRatioY = -burnRatio;
+            }
+
+            if (burn < 0) {
+                burnRatioX *= -1;
+                burnRatioY *= -1;
+            }
+
+            let color;
+            if (orbit.type == "start") {
+                color = "rgba(30, 144, 255, 1)";
+            } else if (orbit.type == "end") {
+                color = "rgba(255, 255, 0, 1)";
+            } else if (orbit.type == "transfer1") {
+                color = "rgba(255, 0, 255, 1)";
+            } else {
+                color = "rgba(255, 140, 0, 1)";
+            }
+            this.burnVectors.push([x, y, x + burnRatioX * this.maxBurnVectorSize, y + burnRatioY * this.maxBurnVectorSize, color, orbit.argumentOfPeriapsis, this.earthPos]);
+        });
     }
 
     draw() {
@@ -174,6 +234,7 @@ class ManeuverSimulation {
         ctx.drawImage(earthImg, -this.earthDiameter/2, -this.earthDiameter/2, this.earthDiameter, this.earthDiameter);
         ctx.restore();
 
+        // orbits
         let drawOrbit = (orbit) => {
             ctx.save();
             ctx.translate(canvas.width/2, canvas.height/2);
@@ -232,6 +293,12 @@ class ManeuverSimulation {
                 drawOrbit(orbit);
             })
         }
+
+        // burn vectors
+
+        this.burnVectors.forEach(vector => {
+            drawVector(...vector);
+        })
 
         // satellite
         ctx.save();
@@ -418,13 +485,21 @@ class OrbitSimulation {
             let maxVelocityFactor = Math.sqrt(2/this.pixelOrbit.periapsis - 1/this.pixelOrbit.semiMajorAxis); // when radius is equal to periapsis, speed will be the greatest
             let velocityRatio = velocityFactor/maxVelocityFactor;
             let [x,y] = this.satPosition();
-            let m = -((orbit.semiMinorAxis ** 2) * (x + this.pixelOrbit.focalDistance))/((orbit.semiMajorAxis ** 2) * y); // slope of the velocity vector
-            // x + this.pixelOrbit.focalDistance since you want the coordinates to be from the center of the ellipse and not the center of the earth, so that the equation works mathematically
-            let velocityRatioX = velocityRatio/(Math.sqrt(1 + m**2)); 
-            if (theta % (2 * Math.PI) < Math.PI) { // determining x's direction in the orbit
-                velocityRatioX =  - velocityRatioX;
+            let velocityRatioX;
+            let velocityRatioY;
+            if (y != 0) {
+                let m = -((orbit.semiMinorAxis ** 2) * (x + this.pixelOrbit.focalDistance))/((orbit.semiMajorAxis ** 2) * y); // slope of the velocity vector
+                // x + this.pixelOrbit.focalDistance since you want the coordinates to be from the center of the ellipse and not the center of the earth, so that the equation works mathematically
+                // Both semiMajorAxis not from pixelOrbit since it doesn't matter since they cancel each other and aren't added to x
+                velocityRatioX = velocityRatio/(Math.sqrt(1 + m**2)); 
+                if (theta % (2 * Math.PI) <= Math.PI) { // determining x's direction in the orbit
+                    velocityRatioX =  - velocityRatioX;
+                }
+                velocityRatioY = m * velocityRatioX;
+            } else {
+                velocityRatioX = 0;
+                velocityRatioY = -velocityRatio;
             }
-            let velocityRatioY = m * velocityRatioX;
             return [velocityRatioX, velocityRatioY];
         }
 
