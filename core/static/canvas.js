@@ -128,17 +128,18 @@ class ManeuverSimulation {
             let [x,y] = this.satPosition();
             let velocityRatioX;
             let velocityRatioY;
-            if (y != 0) {
+            if (theta != 0 && theta != Math.PI) { // when theta is equal to 0 or Math.PI, y will be 0, m will be infinite (vertical slope)
                 let m = -((orbit.semiMinorAxis ** 2) * (x + orbit.focalDistance/this.kmPerPixel))/((orbit.semiMajorAxis ** 2) * y); // slope of the velocity vector 
                 // added this.orbits[this.currentOrbitId].focalDistance to x so that x and y are from the center of the ellipse, so that the equation works mathematically
                 velocityRatioX = velocityRatio/(Math.sqrt(1 + m**2)); 
-                if (theta % (2 * Math.PI) <= Math.PI) { // determining x's direction in the orbit // < causes errors at Math.PI but <= doesn't
+                if (theta % (2 * Math.PI) < Math.PI) { // determining x's direction in the orbit
                     velocityRatioX *= -1;
                 }
                 velocityRatioY = m * velocityRatioX;
-            } else {
+            } else { 
                 velocityRatioX = 0;
-                velocityRatioY = -velocityRatio;
+                velocityRatioY = theta == 0 ? -velocityRatio: velocityRatio; 
+                // when theta is 0, y will be positive which is negative in canvas and vice versa for when theta is Math.PI
             }
             return [velocityRatioX, velocityRatioY];
         }
@@ -165,16 +166,16 @@ class ManeuverSimulation {
             let burnRatioX;
             let burnRatioY;
 
-            if (y != 0) {
+            if (theta != 0 && theta != Math.PI) {
                 let m = -((orbit.semiMinorAxis ** 2) * (x + orbit.focalDistance/this.kmPerPixel))/((orbit.semiMajorAxis ** 2) * y);
                 burnRatioX = burnRatio/(Math.sqrt(1 + m**2)); 
-                if (theta % (2 * Math.PI) <= Math.PI) {
+                if (theta % (2 * Math.PI) < Math.PI) {
                     burnRatioX *= -1;
                 }
                 burnRatioY = m * burnRatioX;
-            } else { // if y is 0, m will be infinite (vertical slope)
+            } else { 
                 burnRatioX = 0;
-                burnRatioY = -burnRatio;
+                burnRatioY = theta == 0 ? -burnRatio : burnRatio;
             }
 
             if (burn < 0) {
@@ -182,16 +183,7 @@ class ManeuverSimulation {
                 burnRatioY *= -1;
             }
 
-            let color;
-            if (orbit.type == "start") {
-                color = "rgba(30, 144, 255,"; // you will add the opacity when drawing the vector (active or not)
-            } else if (orbit.type == "end") {
-                color = "rgba(255, 255, 0,";
-            } else if (orbit.type == "transfer1") {
-                color = "rgba(255, 0, 255,";
-            } else {
-                color = "rgba(255, 140, 0,";
-            }
+            let color = orbitTypeColorMap[orbit.type].slice(0, -2);
             this.burnVectors.push([x, y, x + burnRatioX * this.maxBurnVectorSize, y + burnRatioY * this.maxBurnVectorSize, orbit.argumentOfPeriapsis, this.earthPos, color]);
         });
     }
@@ -240,42 +232,21 @@ class ManeuverSimulation {
             ctx.translate(...this.earthPos);
             ctx.rotate(-orbit.argumentOfPeriapsis);
             ctx.translate(-orbit.focalDistance/(this.kmPerPixel), 0);
-
-            if (orbit.type == "start") {
-                ctx.beginPath();
-                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, 0, 2 * Math.PI);
-                ctx.lineWidth = active ? 3 : 2;
-                ctx.strokeStyle = "rgba(30, 144, 255, " + (active ? 1 : inactiveOpacity) + ")";
-                ctx.stroke();
-            } else if (orbit.type == "end") {
-                ctx.beginPath();
-                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, 0, 2 * Math.PI);
-                ctx.lineWidth = active ? 3 : 2;
-                ctx.strokeStyle = "rgba(255, 255, 0, " + (active ? 1 : inactiveOpacity) + ")";
-                ctx.stroke();
-            } else if (orbit.type == "transfer1") {
+            
+            ctx.lineWidth = active ? 3 : 2;
+            ctx.strokeStyle = orbitTypeColorMap[orbit.type].slice(0, -2) + (active ? 1 : inactiveOpacity) + ")";
+            if (orbit.type.includes("transfer")) {
                 ctx.setLineDash([5,5]);
                 ctx.beginPath();
-                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, -orbit.endArg, -orbit.startArg, true); // negation because of ctx.ellipse keeps angles clockwise when when drawing is counterclockwise
-                ctx.lineWidth = active ? 3 : 2;
-                ctx.strokeStyle = "rgba(255, 0, 255, " + (active ? 1 : inactiveOpacity) + ")"
+                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, -orbit.endArg, -orbit.startArg, true); // negation of angles because of ctx.ellipse keeps angles clockwise even when drawing counterclockwise
                 ctx.stroke();
                 ctx.setLineDash([]);
-                ctx.beginPath();
-                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, -orbit.startArg, -orbit.endArg, true);
-                ctx.stroke();
-            } else {
-                ctx.setLineDash([5,5]);
-                ctx.beginPath();
-                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, -orbit.endArg, -orbit.startArg, true); // negation because of ctx.ellipse keeps angles clockwise when when drawing is counterclockwise
-                ctx.lineWidth = active ? 3 : 2;
-                ctx.strokeStyle = "rgba(255, 140, 0, " + (active ? 1 : inactiveOpacity) + ")"
-                ctx.stroke();
-                ctx.setLineDash([]);
-                ctx.beginPath();
-                ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, -orbit.startArg, -orbit.endArg, true);
-                ctx.stroke();
             }
+            ctx.beginPath();
+            ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, 
+                orbit.type.includes("transfer") ? -orbit.startArg : 0, 
+                orbit.type.includes("transfer")?  -orbit.endArg: 2 * Math.PI, true);
+            ctx.stroke();
             ctx.closePath();
             ctx.restore();
         }
@@ -329,14 +300,14 @@ class ManeuverSimulation {
         // velocity vector
         if (this.showVelocity){
             let [velocityStartX, velocityStartY] = this.satPosition();
-            let [velocityEndX, velocityEndY] = [velocityStartX + this.maxVectorSize * this.velocity()[0], velocityStartY + this.maxVectorSize * this.velocity()[1]]
+            let [velocityEndX, velocityEndY] = this.velocity().map(num => num * this.maxVectorSize).map((num, id) => num + [velocityStartX, velocityStartY][id]);
             drawVector(velocityStartX, velocityStartY, velocityEndX, velocityEndY, this.orbits[this.currentOrbitId].argumentOfPeriapsis, this.earthPos, "blue");
         }
 
         // acceleration vector
         if (this.showAcceleration){
             let [accelerationStartX, accelerationStartY] = this.satPosition();
-            let [accelerationEndX, accelerationEndY] = [accelerationStartX + this.maxVectorSize * this.acceleration()[0], accelerationStartY + this.maxVectorSize * this.acceleration()[1]]
+            let [accelerationEndX, accelerationEndY] = this.acceleration().map(num => num * this.maxVectorSize).map((num, id) => num + [accelerationStartX, accelerationStartY][id]);
             drawVector(accelerationStartX, accelerationStartY, accelerationEndX, accelerationEndY, this.orbits[this.currentOrbitId].argumentOfPeriapsis, this.earthPos, "red");
         }
 
@@ -480,18 +451,18 @@ class OrbitSimulation {
             let [x,y] = this.satPosition();
             let velocityRatioX;
             let velocityRatioY;
-            if (y != 0) {
+            if (theta != 0 && theta != Math.PI) {
                 let m = -((orbit.semiMinorAxis ** 2) * (x + this.pixelOrbit.focalDistance))/((orbit.semiMajorAxis ** 2) * y); // slope of the velocity vector
                 // x + this.pixelOrbit.focalDistance since you want the coordinates to be from the center of the ellipse and not the center of the earth, so that the equation works mathematically
                 // Both semiMajorAxis not from pixelOrbit since it doesn't matter since they cancel each other and aren't added to x
                 velocityRatioX = velocityRatio/(Math.sqrt(1 + m**2)); 
-                if (theta % (2 * Math.PI) <= Math.PI) { // determining x's direction in the orbit
+                if (theta % (2 * Math.PI) < Math.PI) { // determining x's direction in the orbit
                     velocityRatioX =  - velocityRatioX;
                 }
                 velocityRatioY = m * velocityRatioX;
             } else {
                 velocityRatioX = 0;
-                velocityRatioY = -velocityRatio;
+                velocityRatioY = theta == 0 ? -velocityRatio : velocityRatio
             }
             return [velocityRatioX, velocityRatioY];
         }
@@ -588,14 +559,14 @@ class OrbitSimulation {
         // velocity vector
         if (this.showVelocity){
             let [velocityStartX, velocityStartY] = this.satPosition();
-            let [velocityEndX, velocityEndY] = [velocityStartX + this.maxVectorSize * this.velocity()[0], velocityStartY + this.maxVectorSize * this.velocity()[1]]
+            let [velocityEndX, velocityEndY] = this.velocity().map(num => num * this.maxVectorSize).map((num, id) => num + [velocityStartX, velocityStartY][id]);
             drawVector(velocityStartX, velocityStartY, velocityEndX, velocityEndY, this.orbit.argumentOfPeriapsis, this.earthPos, "blue");
         }
 
         // acceleration vector
         if (this.showAcceleration){
             let [accelerationStartX, accelerationStartY] = this.satPosition();
-            let [accelerationEndX, accelerationEndY] = [accelerationStartX + this.maxVectorSize * this.acceleration()[0], accelerationStartY + this.maxVectorSize * this.acceleration()[1]]
+            let [accelerationEndX, accelerationEndY] = this.acceleration().map(num => num * this.maxVectorSize).map((num, id) => num + [accelerationStartX, accelerationStartY][id]);
             drawVector(accelerationStartX, accelerationStartY, accelerationEndX, accelerationEndY, this.orbit.argumentOfPeriapsis, this.earthPos, "red");
         }
 
@@ -702,7 +673,7 @@ function displayDistanceScale(scale) {
     ctx.font = "16px Courier New";
     ctx.textAlign = "center";
     ctx.fillStyle = "white";
-    ctx.fillText(scale, scaleX + 50, scaleY); 
+    ctx.fillText(scale, scaleX + 50, scaleY);
 }
 
  

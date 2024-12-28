@@ -29,14 +29,10 @@ function submitManeuverForm(event) {
                     orbits.push(new Orbit(orbit.axis, orbit.ecc, orbit.arg, "transfer2", orbit.start_arg, orbit.end_arg));
                 }
             });
-
-            let burns = data.burns;
-            let maxLength  = data.max_length;
-            let earthPos = data.earth_pos;
-            simulation = new ManeuverSimulation(orbits, burns, maxLength, earthPos);
-            
+            simulation = new ManeuverSimulation(orbits, data.burns, data.max_length, data.earth_pos);
             loadingScreen.stop();
             simulation.start();
+            generateManeuverInfo(orbits, data.burns);
         })
         .catch(error => {
             alert('Error: '+ error); 
@@ -44,8 +40,6 @@ function submitManeuverForm(event) {
         });    
     }
 }
-
-
 
 function submitOrbitForm(event) {
     event.preventDefault(); // Prevent the default form submission and page reload
@@ -71,9 +65,9 @@ function submitOrbitForm(event) {
         .then(response => response.json())
         .then(data => {
             simulation = new OrbitSimulation(orbit, data.max_length);
-            generateOrbitInfo(orbit);
             loadingScreen.stop();
             simulation.start();
+            generateOrbitInfo(orbit);
         })
         .catch(error => {
             alert('Error: '+ error); 
@@ -83,15 +77,20 @@ function submitOrbitForm(event) {
 }
 
 function orbitFormValidator(formData) {
-    let regexpCheck = /^[0-9]+\.?([0-9]+)?$/.test(formData.get("orbit-axis-value")) && 
-        /^[0-9]+\.?([0-9]+)?$/.test(formData.get("orbit-ecc-value")) && 
-        /^[0-9]+\.?([0-9]+)?$/.test(formData.get("orbit-arg-value")); 
-    let emptyCheck = formData.get("orbit-axis-value") != '' && formData.get("orbit-ecc-value") != '' && 
-        formData.get("orbit-arg-value") != '';
+    let ids = ["orbit-axis", "orbit-ecc", "orbit-arg"];
+    let regexpCheck = true;
+    ids.forEach(id => {
+        regexpCheck = regexpCheck &&  /^[0-9]+\.?([0-9]+)?$/.test(formData.get(id + "-value"));
+    });
+    let emptyCheck = true;
+    ids.forEach(id => {
+        let value = formData.get(id + "-value");
+        emptyCheck = emptyCheck && (value !== '' && value != null && value != undefined);
+    });
 
     if (!(regexpCheck && emptyCheck)) {
         // if invalid inputs, everything is put back to default
-        let ids = ["orbit-axis", "orbit-ecc", "orbit-arg"];
+        
         let defaultVals = ["12345", "0.420", "69"];
         ids.forEach((id, n) => {
             formData.set(id + "-value", defaultVals[n]);
@@ -122,4 +121,8 @@ function orbitFormValidator(formData) {
     } else if (!regexpCheck) {
         alert("Invalid input! Only digits and one decimal point are allowed. ");
     }
+}
+
+function maneuverFormValidator(formData) {
+    // do not forget the case when the two orbits are the same
 }

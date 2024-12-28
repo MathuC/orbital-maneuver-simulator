@@ -146,6 +146,12 @@ body {
     padding: 5px;
 }
 
+.info-title {
+    font-family: Arial;
+    font-size: 25px;
+    font-weight: bold;
+}
+
 #credit {
     font-family: Arial;
     font-size: 12px;

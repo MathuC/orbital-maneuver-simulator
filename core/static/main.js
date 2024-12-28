@@ -1,4 +1,6 @@
 const EARTH_RADIUS = 6371;
+const orbitTypeColorMap = {"start": "rgba(30, 144, 255, 1)", "transfer1": "rgba(255, 0, 255, 1)", 
+    "transfer2": "rgba(255, 140, 0, 1)", "end": "rgba(255, 255, 0, 1)"};
 
 // toggles
 document.getElementById("play-pause-btn").addEventListener('click', () => {
@@ -188,13 +190,13 @@ triggerChangeMaxEcc("maneuver-axis-1", "maneuver-ecc-1");
 triggerChangeMaxEcc("maneuver-axis-2", "maneuver-ecc-2");
 
 
-// info
+// orbit info
 function generateOrbitInfo(orbit) 
 {   
     const info = document.getElementById("info");
     info.innerHTML = "";
     function createLine(name, value) {
-        info.innerHTML += "<b>" + name + ": </b>" + value + "<br>";
+        info.innerHTML += '<span class="info-line"><b>' + name + ': </b>' + value + '</span><br>';
     }
 
     function formatTime(time) {
@@ -213,6 +215,26 @@ function generateOrbitInfo(orbit)
     createLine("Focal distance", Math.round(orbit.focalDistance) + " km");
     createLine("Argument of periapsis", Math.round(orbit.argumentOfPeriapsis * 180/Math.PI) + "°");
     createLine("Orbital period", formatTime(orbit.orbitalPeriod));
+
+    // credit
+    info.innerHTML += '<div id="credit" style=""> To see more of my projects, visit <a href="https://mathusan.net">mathusan.net</a></div>';
+}
+
+// maneuver info
+function generateManeuverInfo(orbits, burns) {
+    const info = document.getElementById("info");
+    info.innerHTML = "";
+
+    function createTitle(name, color) {
+        info.innerHTML += '<span class="info-title">' + name + '</span>' + 
+            '<div style="width:20px;height:20px;margin-left:10px;display:inline-block;background-color:'+color+'"></div><br>';
+    }
+    function createLine(name, value) {
+        info.innerHTML += "<b>" + name + ": </b>" + value + "<br>";
+    }
+
+    createTitle("Initial orbit", "red");
+    createLine("Mathusan", 69);
 
     // credit
     info.innerHTML += '<div id="credit" style=""> To see more of my projects, visit <a href="https://mathusan.net">mathusan.net</a></div>';
