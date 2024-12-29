@@ -316,16 +316,7 @@ class ManeuverSimulation {
         displayTotalTime(this.totalTime);
 
         // display current orbit name
-        let displayOrbitName;
-        if (this.orbits[this.currentOrbitId].type == "start") {
-            displayOrbitName = "Initial Orbit";
-        } else if (this.orbits[this.currentOrbitId].type == "end") {
-            displayOrbitName = "Final Orbit";
-        } else if (this.orbits[this.currentOrbitId].type == "transfer1") {
-            displayOrbitName = "Transfer Orbit 1";
-        } else {
-            displayOrbitName = "Transfer Orbit 2";
-        }
+        let displayOrbitName = orbitTypeTitleMap[this.orbits[this.currentOrbitId].type];
         const displayOrbitX = 10;
         const displayOrbitY = 25;
         ctx.font = "16px Courier New";
