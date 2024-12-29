@@ -1,4 +1,8 @@
 const EARTH_RADIUS = 6371;
+const orbitTypeColorMap = {"start": "rgba(30, 144, 255, 1)", "transfer1": "rgba(255, 0, 255, 1)", 
+    "transfer2": "rgba(255, 140, 0, 1)", "end": "rgba(255, 255, 0, 1)"};
+const orbitTypeTitleMap = {"start": "Initial Orbit", "transfer1": "Transfer Orbit 1", 
+    "transfer2": "Transfer Orbit 2", "end": "Final Orbit"};
 
 // toggles
 document.getElementById("play-pause-btn").addEventListener('click', () => {
@@ -112,7 +116,7 @@ function syncSliderAndInput(id) {
     });
 
     value.addEventListener('input', () => {
-        slider.value = value.value.replace(/\.$/, ''); // so that eg. 12345. isn't NaN
+        slider.value = value.value.replace(/\.$/, ''); // so that eg. 12345. (decimal point without anything after) isn't NaN
     });
 
     value.addEventListener('blur', () => {
@@ -127,7 +131,7 @@ function clamp(id) {
     const min = parseFloat(document.getElementById(id + "-slider").min);
     const max = parseFloat(document.getElementById(id + "-slider").max);
 
-    if (id == "orbit-arg") { //angle periodicity
+    if (id == "orbit-arg" || id == "maneuver-arg-1" || id == "maneuver-arg-2") { //angle periodicity
         if (value.value == '') {
             value.value = 0;
             slider.value = 0;
@@ -149,60 +153,128 @@ function clamp(id) {
     }
 }
 
-const sliderInputIds = ["orbit-ecc", "orbit-axis", "orbit-arg"];
+const sliderInputIds = ["orbit-axis", "orbit-ecc", "orbit-arg", "maneuver-axis-1", "maneuver-axis-2",
+    "maneuver-ecc-1", "maneuver-ecc-2", "maneuver-arg-1", "maneuver-arg-2"
+];
 sliderInputIds.forEach((id) => {
     syncSliderAndInput(id);
 });
 
+
 // change eccentricity max so that periapsis is at least bigger than earth's radius + 160km which is the lowest altitude a satellite can be at
-function changeMaxEcc() {
-    orbitAxisValue = parseFloat(document.getElementById("orbit-axis-value").value);
+function changeMaxEcc(axisId, eccId) {
+    orbitAxisValue = parseFloat(document.getElementById(axisId + "-value").value);
     if (!isNaN(orbitAxisValue)){
         eccMax = maxEcc(orbitAxisValue);
-        document.getElementById("orbit-ecc-slider").max = Math.floor(eccMax * 1000) / 1000;
-        clamp("orbit-ecc");
+        document.getElementById(eccId + "-slider").max = Math.floor(eccMax * 1000) / 1000;
+        clamp(eccId);
     }
 }
-
 function maxEcc(semiMajorAxis) {
     return 1 - (EARTH_RADIUS + 160)/semiMajorAxis;
 }
 
-document.getElementById("orbit-axis-slider").addEventListener('input', () => {
-    changeMaxEcc();
-});
+function triggerChangeMaxEcc(axisId, eccId) {
+    document.getElementById(axisId + "-slider").addEventListener('input', () => {
+        changeMaxEcc(axisId, eccId);
+    });
+    document.getElementById(axisId+"-value").addEventListener('blur', () => {
+        changeMaxEcc(axisId, eccId);
+    });
+    changeMaxEcc(axisId, eccId); //for the default values after the html loads
+}
 
-document.getElementById("orbit-axis-value").addEventListener('blur', () => {
-    changeMaxEcc();
-});
+// orbit
+triggerChangeMaxEcc("orbit-axis", "orbit-ecc");
 
-changeMaxEcc();
+// maneuvers
+triggerChangeMaxEcc("maneuver-axis-1", "maneuver-ecc-1");
+triggerChangeMaxEcc("maneuver-axis-2", "maneuver-ecc-2");
+
+
+
+// format time for info generating functions
+function formatTime(time) {
+    let hours = Math.floor(time/3600);
+    let minutes = Math.floor((time % 3600)/60);
+    let seconds = Math.floor(time % 60);
+
+    return `${hours}h ${minutes}m ${seconds}s`;
+}
+
 
 // info
-function generateOrbitInfo(orbit) 
-{   
+
+const info = document.getElementById("info");
+
+// create line for info generating functions
+function createLine(name, value) {
+    info.innerHTML += '<b>' + name + ': </b>' + value + '<br>';
+}
+
+// orbit info
+function generateOrbitInfo(orbit) {  
+
     const info = document.getElementById("info");
     info.innerHTML = "";
-    function createLine(name, value, unit) {
-        info.innerHTML += "<b>" + name + ": </b>" + value + ((typeof unit !== 'undefined') ? (" " + unit) : "") + "<br>";
-    }
-
-    function formatTime(time) {
-        let hours = Math.floor(time/3600);
-        let minutes = Math.floor((time % 3600)/60);
-        let seconds = Math.floor(time % 60);
-
-        return `${hours}h ${minutes}m ${seconds}s`;
-    }
     
-    createLine("Semi-major axis", orbit.semiMajorAxis, "km");
-    createLine("Semi-minor axis", Math.round(orbit.semiMinorAxis), "km");
+    createLine("Semi-Major Axis", orbit.semiMajorAxis.toLocaleString() + " km");
+    createLine("Semi-Minor Axis", Math.round(orbit.semiMinorAxis).toLocaleString() + " km");
     createLine("Eccentricity", orbit.e);
-    createLine("Periapsis", Math.round(orbit.periapsis), "km");
-    createLine("Apoapsis", Math.round(orbit.apoapsis), "km");
-    createLine("Focal distance", Math.round(orbit.focalDistance), "km");
-    createLine("Argument of periapsis", Math.round(orbit.argumentOfPeriapsis * 180/Math.PI), "°");
-    createLine("Orbital period", formatTime(orbit.orbitalPeriod));
+    createLine("Periapsis", Math.round(orbit.periapsis).toLocaleString() + " km");
+    createLine("Apoapsis", Math.round(orbit.apoapsis).toLocaleString() + " km");
+    createLine("Focal Distance", Math.round(orbit.focalDistance).toLocaleString() + " km");
+    createLine("Argument of Periapsis", Math.round(orbit.argumentOfPeriapsis * 180/Math.PI) + "°");
+    createLine("Orbital Period", formatTime(orbit.orbitalPeriod));
+
+    // credit
+    info.innerHTML += '<div id="credit" style=""> To see more of my projects, visit <a href="https://mathusan.net">mathusan.net</a></div>';
+}
+
+// maneuver info
+function generateManeuverInfo(orbits, burns) {
+
+    info.innerHTML = "";
+
+    function createTitle(name, color) {
+        info.innerHTML += '<span class="info-title">' + name + '</span>' + 
+            '<div style="width:20px;height:20px;margin-left:10px;display:inline-block;background-color:'+color+'"></div><br>';
+    }
+
+    orbits.forEach((orbit, id) => {
+        createTitle(orbitTypeTitleMap[orbit.type], orbitTypeColorMap[orbit.type]);
+        createLine("Semi-Major Axis", orbit.semiMajorAxis.toLocaleString() + " km");
+        createLine("Semi-Minor Axis", Math.round(orbit.semiMinorAxis).toLocaleString() + " km");
+        createLine("Eccentricity", Math.round(orbit.e * 1000)/1000);
+        createLine("Periapsis", Math.round(orbit.periapsis).toLocaleString() + " km");
+        createLine("Apoapsis", Math.round(orbit.apoapsis).toLocaleString() + " km");
+        createLine("Focal Distance", Math.round(orbit.focalDistance).toLocaleString() + " km");
+        createLine("Argument of Periapsis", Math.round(orbit.argumentOfPeriapsis * 180/Math.PI) + "°");
+        createLine("Orbital Period", formatTime(orbit.orbitalPeriod));
+        info.innerHTML+= '<br>';
+        if (orbit.type != "end") {
+            createTitle("Burn " + (id + 1), orbitTypeColorMap[orbit.type]);
+            createLine("Orbit", orbitTypeTitleMap[orbit.type]);
+            createLine("Δv", Math.abs(burns[id]).toLocaleString() + " km/h");
+            createLine("Direction", burns[id] > 0? "Prograde":"Retrograde");
+            let theta = orbit["endArg"] % (2 * Math.PI);
+            let location = Math.round((theta/(2 * Math.PI)) * 360) + "°";
+            if (theta == 0) {
+                location += " (periapsis)"
+            } else if  (theta == Math.PI) {
+                location += " (apoapsis)"
+            }
+            createLine("True Anomaly", location);
+            info.innerHTML+= '<br>';
+        }   
+    })
+
+    let totalDeltaV = 0;
+    burns.forEach(burn => {
+        totalDeltaV += Math.abs(burn);
+    });
+
+    createTitle("Total Δv: "+totalDeltaV.toLocaleString() +" km/h");
 
     // credit
     info.innerHTML += '<div id="credit" style=""> To see more of my projects, visit <a href="https://mathusan.net">mathusan.net</a></div>';
