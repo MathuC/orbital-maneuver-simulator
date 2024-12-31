@@ -91,13 +91,6 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
     end_orbit["axis"] = int(end_orbit["axis"])
     end_orbit["ecc"] = float(end_orbit["ecc"])
     end_orbit["arg"] = math.radians(int(end_orbit["arg"]))
-    
-    # orbit stack
-    orbits = [start_orbit.copy()]
-    orbits[0]["start_arg"] = 0
-
-    # burn stack
-    burns = []
 
     def periapsis(orbit):
         return orbit["axis"] * (1 - orbit["ecc"])
@@ -116,10 +109,15 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
     
     def velocity(r, semi_major_axis):
         return math.sqrt(G * EARTH_MASS * (2/r - 1/semi_major_axis))
+    
+    orbits = [start_orbit.copy()]
+    orbits[0]["start_arg"] = 0
 
-    # Make apoapsis equal if they are not the same; first burn at the periapsis of orbits[-1]
-    # No end_arg can be equal to 0 since it will skip the orbit, so make it equal to 2pi
-    if (apoapsis(orbits[-1]) != apoapsis(end_orbit)):
+    burns = []
+
+    # No end_arg can be equal to 0 since it will skip the orbit entirely so make it equal to 2 * pi
+    # Strategy 1: Make orbits[-1]'s apoapsis equal to end_orbit's apoapsis; first burn at the periapsis of orbits[-1]
+    if ((apoapsis(orbits[-1]) != apoapsis(end_orbit)) and (periapsis(orbits[-1]) != apoapsis(end_orbit))):
         newOrbit = {}
         newOrbit["axis"] = axis(periapsis(orbits[-1]), apoapsis(end_orbit))
 
@@ -162,15 +160,14 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
 
         newOrbit = {}
         newOrbit["ecc"] = 0
+        newOrbit["axis"] = apoapsis(end_orbit)
         newOrbit["start_arg"] = 0
         if (orbits[-1]["start_arg"] == 0):
             orbits[-1]["end_arg"] = math.pi
-            newOrbit["axis"] = apoapsis(orbits[-1])
             newOrbit["arg"] = normalize_angle(orbits[-1]["arg"] + math.pi)
         
         else:
             orbits[-1]["end_arg"] = 2 * math.pi
-            newOrbit["axis"] = periapsis(orbits[-1])
             newOrbit["arg"] = orbits[-1]["arg"]
 
         v1 = velocity(newOrbit["axis"], orbits[-1]["axis"])
