@@ -238,7 +238,7 @@ function generateManeuverInfo(orbits, burns) {
 
     function createTitle(name, color) {
         info.innerHTML += '<span class="info-title">' + name + '</span>' + 
-            '<div style="width:20px;height:20px;margin-left:10px;display:inline-block;background-color:'+color+'"></div><br>';
+        '<div style="width:20px;height:20px;margin-left:10px;display:inline-block;background-color:'+color+'"></div><br>';
     }
 
     orbits.forEach((orbit, id) => {
@@ -255,8 +255,6 @@ function generateManeuverInfo(orbits, burns) {
         if (orbit.type != "end") {
             createTitle("Burn " + (id + 1), orbitTypeColorMap[orbit.type]);
             createLine("Orbit", orbitTypeTitleMap[orbit.type]);
-            createLine("Δv", Math.abs(burns[id]).toLocaleString() + " km/h");
-            createLine("Direction", burns[id] > 0? "Prograde":"Retrograde");
             let theta = orbit["endArg"] % (2 * Math.PI);
             let location = Math.round((theta/(2 * Math.PI)) * 360) + "°";
             if (theta == 0) {
@@ -265,6 +263,9 @@ function generateManeuverInfo(orbits, burns) {
                 location += " (apoapsis)"
             }
             createLine("True Anomaly", location);
+            createLine("Δv", Math.abs(burns[id]).toLocaleString() + " m/s");
+            createLine("Direction", burns[id] > 0? "Prograde":"Retrograde");
+            createLine("Thrust Mode", "Impulse");
             info.innerHTML+= '<br>';
         }   
     })
@@ -274,7 +275,7 @@ function generateManeuverInfo(orbits, burns) {
         totalDeltaV += Math.abs(burn);
     });
 
-    createTitle("Total Δv: "+totalDeltaV.toLocaleString() +" km/h");
+    createTitle("Total Δv: "+totalDeltaV.toLocaleString() +" m/s");
 
     // credit
     info.innerHTML += '<div id="credit" style=""> To see more of my projects, visit <a href="https://mathusan.net">mathusan.net</a></div>';

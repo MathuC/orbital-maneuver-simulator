@@ -16,8 +16,9 @@ const EARTH_MASS = 5.972e24;
  */ 
 
 // tests
-// intersection at the end_orbit periapsis; test with axis=30,000, ecc=0 and axis=50,000, ecc=0.4
-// intersection at the end_orbit apoapsis; test with axis=30,000, ecc=0 and axis=20,000, ecc=0.5
+// 30000, 0, 0 and 50000, 0.4, 0 and vice versa (intersection at the end_orbit periapsis)
+// 30000, 0, 0 and 20000, 0.5, 0 and vice versa (intersection at the end_orbit apoapsis)
+// 20000, 0.4, 0 and 10000, 0.2, Math.PI and vice versa
 
 class ManeuverSimulation {
     constructor(orbits, burns, maxLength, earthPos) {

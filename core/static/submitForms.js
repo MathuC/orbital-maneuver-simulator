@@ -11,6 +11,8 @@ function submitManeuverForm(event) {
         loadingScreen.start();
 
         const formData = new FormData(event.target);
+        formValidator(formData);
+
         fetch('/submit-maneuver-form/', {
             method: 'POST',
             body: formData,
@@ -54,7 +56,7 @@ function submitOrbitForm(event) {
 
         const formData = new FormData(event.target); // Get form data
 
-        orbitFormValidator(formData); // has to be before orbit definition since validator could put formData values to default
+        formValidator(formData); // has to be before orbit definition since validator could put formData values to default
 
         let orbit = new Orbit(parseInt(formData.get("orbit-axis-value")), parseFloat(formData.get("orbit-ecc-value")), parseInt(formData.get("orbit-arg-value")) * (Math.PI / 180), "constant", false, false);
  
@@ -76,8 +78,12 @@ function submitOrbitForm(event) {
     }
 }
 
-function orbitFormValidator(formData) {
-    let ids = ["orbit-axis", "orbit-ecc", "orbit-arg"];
+function formValidator(formData) {
+    let isManeuverForm = formData.has("maneuver-axis-1-value");
+    let ids = isManeuverForm ? ["maneuver-axis-1", "maneuver-ecc-1",
+        "maneuver-arg-1", "maneuver-axis-2", "maneuver-ecc-2", "maneuver-arg-2"] : 
+        ["orbit-axis", "orbit-ecc", "orbit-arg"];
+    
     let regexpCheck = true;
     ids.forEach(id => {
         regexpCheck = regexpCheck &&  /^[0-9]+\.?([0-9]+)?$/.test(formData.get(id + "-value"));
@@ -88,41 +94,62 @@ function orbitFormValidator(formData) {
         emptyCheck = emptyCheck && (value !== '' && value != null && value != undefined);
     });
 
-    if (!(regexpCheck && emptyCheck)) {
+    let diffOrbitsCheck = true;
+
+    if (regexpCheck && emptyCheck) {
+        ids.forEach((idString, id) => {
+            if (id % 3 == 0) { // axis
+                if (parseFloat(formData.get(idString + "-value")) > 50000) {
+                    formData.set(idString + "-value", "50000");
+                } else if (parseFloat(formData.get(idString + "-value")) < 6531) {
+                    formData.set(idString + "-value", "6531");
+                }
+
+                // int conversion
+                formData.set(idString + "-value", parseInt(formData.get(idString + "-value")));
+            
+            } else if (id % 3 == 1) { // ecc
+                if (parseFloat(formData.get(idString + "-value")) > maxEcc(formData.get(ids[id-1] + "-value"))) {
+                    formData.set(idString + "-value",  maxEcc(formData.get(ids[id-1] + "-value")));
+                } else if (parseFloat(formData.get(idString + "-value")) < 0) {
+                    formData.set(idString + "-value",  "0");
+                }
+
+            } else { // arg
+
+                // int conversion
+                formData.set(idString + "-value", parseInt(formData.get(idString + "-value")) % 360 );
+            }
+        });
+
+        if (isManeuverForm) {
+            sameOrbits = true;
+            for (let i = 0; i < 3; i++) {
+                sameOrbits = sameOrbits && (formData.get(ids[i]+ '-value') == formData.get(ids[i+3] + '-value'));
+            }
+            diffOrbitsCheck = !sameOrbits;
+        }
+    }
+
+    if (!(emptyCheck && regexpCheck && diffOrbitsCheck)) {
+
         // if invalid inputs, everything is put back to default
-        
-        let defaultVals = ["12345", "0.420", "69"];
+
+        let defaultVals = isManeuverForm ? ["15168", "0.569", "39", "9660", "0.226", "137"] : ["12345", "0.420", "69"];
+
         ids.forEach((id, n) => {
             formData.set(id + "-value", defaultVals[n]);
             document.getElementById(id + "-value").value = defaultVals[n];
             document.getElementById(id + "-slider").value = defaultVals[n];
         });
-    } else {
-        // float to int conversion
-        formData.set("orbit-axis-value", String(parseInt(formData.get("orbit-axis-value"))));
-        formData.set("orbit-arg-value", String(parseInt(formData.get("orbit-arg-value"))));
 
-        // min max check
-        if (parseFloat(formData.get("orbit-axis-value")) > 50000) {
-            formData.set("orbit-axis-value", "50000");
-        } else if (parseFloat(formData.get("orbit-axis-value")) < 6531) {
-            formData.set("orbit-axis-value", "6531");
+        if (!emptyCheck) {
+            alert("Input cannot be empty.");
+        } else if (!regexpCheck) {
+            alert("Invalid input! Only digits and one decimal point are allowed. ");
+        } else {
+            alert("Initial and final orbits have to be different.");
         }
-
-        if (parseFloat(formData.get("orbit-ecc-value")) > maxEcc(formData.get("orbit-axis-value"))) {
-            formData.set("orbit-ecc-value",  maxEcc(formData.get("orbit-axis-value")));
-        } else if (parseFloat(formData.get("orbit-ecc-value")) < 0) {
-            formData.set("orbit-ecc-value",  "0");
-        }
+        
     }
-
-    if (!emptyCheck) {
-        alert("Input cannot be empty.");
-    } else if (!regexpCheck) {
-        alert("Invalid input! Only digits and one decimal point are allowed. ");
-    }
-}
-
-function maneuverFormValidator(formData) {
-    // do not forget the case when the two orbits are the same
 }
