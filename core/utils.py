@@ -8,8 +8,9 @@ EARTH_MASS = 5.972e24
 def normalize_angle(angle):
     return angle % (2 * math.pi)
 
+# to make up for small precision errors when adding and subtracting angles
 def standardize_angle(angle):
-    return round(angle * (10 ** 15))/(10 ** 15) # to make up for small precision errors when adding and subtracting angles
+    return round(angle * (10 ** 15))/(10 ** 15) 
 
 def ellipse_bounding_box(a, e, theta):
 
@@ -128,16 +129,14 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
         orbits[0]["start_arg"] = 0
         burns = []
 
-        # STRATEGY 1 and 2
-        # STEP 1: Reach end_orbit's apoapsis
+        # STRATEGY 1 and 2 (Reach end_orbit's apoapsis first)  
         if (strat == 0 or strat == 1): 
-
-            # STRATEGY 1
-            if (strat == 0 and (apoapsis(orbits[-1]) != apoapsis(end_orbit))): 
+            # STEP 1: Reach end_orbit's apoapsis
+            if ((strat == 0 and (apoapsis(orbits[-1]) != apoapsis(end_orbit))) or (strat == 1 and (periapsis(orbits[-1]) != apoapsis(end_orbit)))):
                 newOrbit = {}
                 newOrbit["axis"] = axis(periapsis(orbits[-1]), apoapsis(end_orbit))
 
-                # if orbits[-1] is a circle, then do the rotation of the orbit and the same time of this burn
+                # if orbits[-1] is a circle, then do the rotation of the orbit and the same time of this burn, same for strat 1 and 2
                 if (periapsis(orbits[-1]) == apoapsis(orbits[-1])):
                     tempArg = normalize_angle(end_orbit["arg"] - orbits[-1]['arg'])
                     orbits[-1]["end_arg"] = tempArg if tempArg != 0 else 2 * math.pi # you don't want the end arg of an orbit to be 0 
@@ -145,62 +144,50 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                         newOrbit["arg"] = end_orbit["arg"]
                     else: # newOrbit's periapsis and apoapsis switch sides
                         newOrbit["arg"] = normalize_angle(end_orbit["arg"] + math.pi)
-                
-                else:
-                    orbits[-1]["end_arg"] = 2 * math.pi
-                    if (periapsis(orbits[-1]) <= apoapsis(end_orbit)): # newOrbit is a circle or newOrbit's periapsis and apoapsis stay on the same sides
-                        newOrbit["arg"] = orbits[-1]["arg"]
-                    else: # newOrbit's periapsis and apoapsis switch sides
-                        newOrbit["arg"] = normalize_angle(orbits[-1]["arg"] + math.pi)
+                # STRATEGY 1: apoapsis -> apoapsis
+                if (strat == 0 and (apoapsis(orbits[-1]) != apoapsis(end_orbit))): 
 
-                if (periapsis(orbits[-1]) <= apoapsis(end_orbit)):
-                    newOrbit["ecc"] = eccentricity(periapsis(orbits[-1]), apoapsis(end_orbit))
-                    newOrbit["start_arg"] = 0
-                else:
-                    newOrbit["ecc"] = eccentricity(apoapsis(end_orbit), periapsis(orbits[-1]))
-                    newOrbit["start_arg"] = math.pi
-            
-            # STRATEGY 2
-            elif (strat == 1 and (periapsis(orbits[-1]) != apoapsis(end_orbit))):
-                newOrbit = {}
-                newOrbit["axis"] = axis(apoapsis(end_orbit), apoapsis(orbits[-1]))
+                    if (periapsis(orbits[-1]) != apoapsis(orbits[-1])):
+                        orbits[-1]["end_arg"] = 2 * math.pi
+                        if (periapsis(orbits[-1]) <= apoapsis(end_orbit)): # newOrbit is a circle or newOrbit's periapsis and apoapsis stay on the same sides
+                            newOrbit["arg"] = orbits[-1]["arg"]
+                        else: # newOrbit's periapsis and apoapsis switch sides
+                            newOrbit["arg"] = normalize_angle(orbits[-1]["arg"] + math.pi)
 
-                # orbits[-1] is a circle
-                if (periapsis(orbits[-1]) == apoapsis(orbits[-1])):
-                    tempArg = normalize_angle(end_orbit["arg"] - orbits[-1]['arg'])
-                    orbits[-1]["end_arg"] = tempArg if tempArg != 0 else 2 * math.pi 
-                    if (apoapsis(orbits[-1]) <= apoapsis(end_orbit)): 
-                        newOrbit["arg"] = end_orbit["arg"]
+                    if (periapsis(orbits[-1]) <= apoapsis(end_orbit)):
+                        newOrbit["ecc"] = eccentricity(periapsis(orbits[-1]), apoapsis(end_orbit))
+                        newOrbit["start_arg"] = 0
                     else:
-                        newOrbit["arg"] = normalize_angle(end_orbit["arg"] + math.pi)
+                        newOrbit["ecc"] = eccentricity(apoapsis(end_orbit), periapsis(orbits[-1]))
+                        newOrbit["start_arg"] = math.pi
                 
-                else:
-                    orbits[-1]["end_arg"] = math.pi
-                    if (apoapsis(orbits[-1]) <= apoapsis(end_orbit)): 
-                        newOrbit["arg"] = normalize_angle(orbits[-1]["arg"] + math.pi) 
-                    else: 
-                        newOrbit["arg"] = orbits[-1]["arg"]
+                # STRATEGY 2: periapsis -> apoapsis
+                elif (strat == 1 and (periapsis(orbits[-1]) != apoapsis(end_orbit))):
+                    
+                    if (periapsis(orbits[-1]) != apoapsis(orbits[-1])):
+                        orbits[-1]["end_arg"] = math.pi
+                        if (apoapsis(orbits[-1]) <= apoapsis(end_orbit)): 
+                            newOrbit["arg"] = normalize_angle(orbits[-1]["arg"] + math.pi) 
+                        else: 
+                            newOrbit["arg"] = orbits[-1]["arg"]
 
-                if (apoapsis(orbits[-1]) <= apoapsis(end_orbit)):
-                    newOrbit["ecc"] = eccentricity(apoapsis(orbits[-1]), apoapsis(end_orbit))
-                    newOrbit["start_arg"] = 0
-                else:
-                    newOrbit["ecc"] = eccentricity(apoapsis(end_orbit), apoapsis(orbits[-1]))
-                    newOrbit["start_arg"] = math.pi
+                    if (apoapsis(orbits[-1]) <= apoapsis(end_orbit)):
+                        newOrbit["ecc"] = eccentricity(apoapsis(orbits[-1]), apoapsis(end_orbit))
+                        newOrbit["start_arg"] = 0
+                    else:
+                        newOrbit["ecc"] = eccentricity(apoapsis(end_orbit), apoapsis(orbits[-1]))
+                        newOrbit["start_arg"] = math.pi
 
-            v1 = velocity(periapsis(orbits[-1]), orbits[-1]["axis"])
-            v2 = velocity(periapsis(orbits[-1]), newOrbit["axis"])
-            burns.append(round((v2-v1)))
-            orbits.append(newOrbit)
+                v1 = velocity(periapsis(orbits[-1]), orbits[-1]["axis"])
+                v2 = velocity(periapsis(orbits[-1]), newOrbit["axis"])
+                burns.append(round((v2-v1)))
+                orbits.append(newOrbit)
             
-            if (isEqual(orbits[-1], end_orbit)):
-                total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
-                strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v})
-                continue
+                if (isEqual(orbits[-1], end_orbit)):
+                    total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
+                    strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v})
+                    continue
 
-            print(standardize_angle(normalize_angle(orbits[-1]["arg"] + math.pi)))
-            print(standardize_angle(normalize_angle(end_orbit["arg"])))
-            
             # STEP 2: Make the orbit circular if you need to change arg later
             # if end_orbit is a circle, you should skip since this will not give the correct start and end arg, which will be done with the last step
             if (not (round(periapsis(orbits[-1])) == round(apoapsis(end_orbit)) and standardize_angle(normalize_angle(orbits[-1]["arg"] + math.pi)) == standardize_angle(normalize_angle(end_orbit["arg"]))) and 
@@ -220,14 +207,14 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                     newOrbit["arg"] = orbits[-1]["arg"]
 
                 v1 = velocity(newOrbit["axis"], orbits[-1]["axis"])
-                v2 = velocity(newOrbit["axis"], newOrbit["axis"]) # same r and a because circular orbit
+                v2 = velocity(newOrbit["axis"], newOrbit["axis"]) # same r and axis because circular orbit
                 burns.append(round((v2-v1)))
                 orbits.append(newOrbit)
 
-            if (isEqual(orbits[-1], end_orbit)):
-                total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
-                strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v})
-                continue
+                if (isEqual(orbits[-1], end_orbit)):
+                    total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
+                    strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v})
+                    continue
 
             # STEP 3: Reach end_orbit's periapsis
             newOrbit = end_orbit.copy()
@@ -243,7 +230,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                     if (end_orbit["ecc"] != 0): 
                         newOrbit["start_arg"] = math.pi 
                     else: 
-                        newOrbit["start_arg"] = normalize_angle(orbits[-1]['arg'] - math.pi - end_orbit['arg'])
+                        newOrbit["start_arg"] = normalize_angle(orbits[-1]['arg'] - end_orbit['arg'] + math.pi)
                 else: # periapsis of orbits[-1] is equal to end_orbit apoapsis
                     orbits[-1]["end_arg"] = 2 * math.pi
                     if (end_orbit["ecc"] != 0): 
@@ -262,19 +249,123 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
         
         # STRATEGY 3 and 4 (Reach end_orbit's periapsis first)
         else:
-            # STRATEGY 3
-            if (strat == 2):
-                print('strat 3')
+        
+            # STEP 1: Reach end_orbit's periapsis
+            if ((strat == 2 and (periapsis(orbits[-1]) != periapsis(end_orbit))) or (strat == 3 and (periapsis(orbits[-1]) != apoapsis(end_orbit)))):
+                newOrbit = {}
+                newOrbit["axis"] = axis(periapsis(end_orbit), apoapsis(orbits[-1]))
 
-            # STRATEGY 4
-            elif (strat == 3):
-                print('strat 4')
+                if (periapsis(orbits[-1]) == apoapsis(orbits[-1])):
+                    tempArg = normalize_angle(end_orbit["arg"] - orbits[-1]['arg'] + math.pi)
+                    orbits[-1]["end_arg"] = tempArg if tempArg != 0 else 2 * math.pi 
+                    if (apoapsis(orbits[-1]) <= periapsis(end_orbit)): 
+                        newOrbit["arg"] = normalize_angle(end_orbit["arg"] + math.pi)
+                    else: 
+                        newOrbit["arg"] = end_orbit["arg"]
 
-    best_strat = min(strat_outputs, key = lambda x : x['total_delta_v'])
+                # STRATEGY 3: periapsis -> periapsis
+                if (strat == 2 and (periapsis(orbits[-1]) != periapsis(end_orbit))): 
+                    
+                    if (periapsis(orbits[-1]) != apoapsis(orbits[-1])):
+                        orbits[-1]["end_arg"] = math.pi
+                        if (apoapsis(orbits[-1]) <= periapsis(end_orbit)): 
+                            newOrbit["arg"] = normalize_angle(orbits[-1]["arg"] + math.pi)
+                        else: 
+                            newOrbit["arg"] = orbits[-1]["arg"]
 
-    # test
-    print(strat_outputs)
-    print("Strategy used: ", strat_outputs.index(best_strat) + 1)
+                    if (apoapsis(orbits[-1]) <= periapsis(end_orbit)):
+                        newOrbit["ecc"] = eccentricity(apoapsis(orbits[-1]), periapsis(end_orbit))
+                        newOrbit["start_arg"] = 0
+                    else:
+                        newOrbit["ecc"] = eccentricity(periapsis(end_orbit), apoapsis(orbits[-1]))
+                        newOrbit["start_arg"] = math.pi
+                
+                # STRATEGY 4: apoapsis -> periapsis
+                elif (strat == 3 and (periapsis(orbits[-1]) != apoapsis(end_orbit))):
+                    
+                    if (periapsis(orbits[-1]) != apoapsis(orbits[-1])):
+                        orbits[-1]["end_arg"] = 2 * math.pi
+                        if (periapsis(orbits[-1]) <= periapsis(end_orbit)): 
+                            newOrbit["arg"] = orbits[-1]["arg"]
+                        else: 
+                            newOrbit["arg"] = normalize_angle(orbits[-1]["arg"] + math.pi) 
+
+                    if (periapsis(orbits[-1]) <= periapsis(end_orbit)):
+                        newOrbit["ecc"] = eccentricity(periapsis(orbits[-1]), periapsis(end_orbit))
+                        newOrbit["start_arg"] = 0
+                    else:
+                        newOrbit["ecc"] = eccentricity(periapsis(end_orbit), periapsis(orbits[-1]))
+                        newOrbit["start_arg"] = math.pi
+
+                v1 = velocity(apoapsis(orbits[-1]), orbits[-1]["axis"])
+                v2 = velocity(apoapsis(orbits[-1]), newOrbit["axis"])
+                burns.append(round((v2-v1)))
+                orbits.append(newOrbit)
+
+                if (isEqual(orbits[-1], end_orbit)):
+                    total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
+                    strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v})
+                    continue
+            
+            # STEP 2: Make the orbit circular if you need to change arg later
+            if (not (round(periapsis(orbits[-1])) == round(periapsis(end_orbit)) and standardize_angle(normalize_angle(orbits[-1]["arg"])) == standardize_angle(normalize_angle(end_orbit["arg"]))) and 
+                not (round(apoapsis(orbits[-1])) == round(periapsis(end_orbit)) and standardize_angle(normalize_angle(orbits[-1]["arg"] + math.pi)) == standardize_angle(normalize_angle(end_orbit["arg"]))) and 
+                orbits[-1]["ecc"] != 0 and end_orbit["ecc"] != 0):
+
+                newOrbit = {}
+                newOrbit["ecc"] = 0
+                newOrbit["axis"] = periapsis(end_orbit) # CHANGED 1,2 -> 3,4 IN STEP 2
+                newOrbit["start_arg"] = 0
+                if (orbits[-1]["start_arg"] == 0):
+                    orbits[-1]["end_arg"] = math.pi
+                    newOrbit["arg"] = normalize_angle(orbits[-1]["arg"] + math.pi)
+                else:
+                    orbits[-1]["end_arg"] = 2 * math.pi
+                    newOrbit["arg"] = orbits[-1]["arg"]
+
+                v1 = velocity(newOrbit["axis"], orbits[-1]["axis"])
+                v2 = velocity(newOrbit["axis"], newOrbit["axis"])
+                burns.append(round((v2-v1)))
+                orbits.append(newOrbit)
+
+                if (isEqual(orbits[-1], end_orbit)):
+                    total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
+                    strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v})
+                    continue
+
+            # STEP 3: Reach end_orbit's apoapsis
+            newOrbit = end_orbit.copy()
+
+            if (orbits[-1]["ecc"] == 0):
+                tempArg = normalize_angle(end_orbit['arg'] - orbits[-1]['arg']) # CHANGED 1,2 -> 3,4 IN STEP 2
+                orbits[-1]["end_arg"] = tempArg if tempArg != 0 else 2 * math.pi
+                newOrbit["start_arg"] = 0
+            else:
+                if (abs(apoapsis(orbits[-1]) - periapsis(end_orbit)) < abs(periapsis(orbits[-1]) - periapsis(end_orbit))): # CHANGED 1,2 -> 3,4 IN STEP 2
+                    orbits[-1]["end_arg"] = math.pi
+                    if (end_orbit["ecc"] != 0): 
+                        newOrbit["start_arg"] = 0 # CHANGED 1,2 -> 3,4 IN STEP 2
+                    else: 
+                        newOrbit["start_arg"] = normalize_angle(orbits[-1]['arg'] - end_orbit['arg'] + math.pi)
+                else: 
+                    orbits[-1]["end_arg"] = 2 * math.pi
+                    if (end_orbit["ecc"] != 0): 
+                        newOrbit["start_arg"] = 0 # CHANGED 1,2 -> 3,4 IN STEP 2
+                    else: 
+                        newOrbit["start_arg"] = normalize_angle(orbits[-1]['arg'] - end_orbit['arg'])
+
+
+            v1 = velocity(periapsis(end_orbit), orbits[-1]["axis"]) # CHANGED 1,2 -> 3,4 IN STEP 2
+            v2 = velocity(periapsis(end_orbit), end_orbit["axis"]) # CHANGED 1,2 -> 3,4 IN STEP 2
+            burns.append(round((v2-v1)))
+            orbits.append(newOrbit)
+
+            total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
+            strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v})
+
+    strat_id, best_strat = min(enumerate(strat_outputs), key = lambda x : x[1]['total_delta_v'])
+    total_delta_v_list = [output['total_delta_v'] for output in strat_outputs]
 
     max_length, earth_pos = max_length_earth_pos(best_strat['orbits']).values()
-    return {"orbits": best_strat['orbits'], "burns": best_strat['burns'], "max_length": max_length, "earth_pos": earth_pos}
+    return {"orbits": best_strat['orbits'], "burns": best_strat['burns'], "max_length": max_length, 
+            "earth_pos": earth_pos, "total_delta_v_list": total_delta_v_list, "strat_id": strat_id}

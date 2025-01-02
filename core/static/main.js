@@ -232,7 +232,7 @@ function generateOrbitInfo(orbit) {
 }
 
 // maneuver info
-function generateManeuverInfo(orbits, burns) {
+function generateManeuverInfo(orbits, burns, totalDeltaVList, stratId) {
 
     info.innerHTML = "";
 
@@ -240,6 +240,30 @@ function generateManeuverInfo(orbits, burns) {
         info.innerHTML += '<span class="info-title">' + name + '</span>' + 
         '<div style="width:20px;height:20px;margin-left:10px;display:inline-block;background-color:'+color+'"></div><br>';
     }
+
+    createTitle("Total Δv: "+totalDeltaVList[stratId].toLocaleString() +" m/s");
+    info.innerHTML += '<br>';
+
+    const chartCtx = document.getElementById('myChart');
+
+    new Chart(chartCtx, {
+        type: 'bar',
+        data: {
+          labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+          datasets: [{
+            label: '# of Votes',
+            data: [12, 19, 3, 5, 2, 3],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
 
     orbits.forEach((orbit, id) => {
         createTitle(orbitTypeTitleMap[orbit.type], orbitTypeColorMap[orbit.type]);
@@ -269,13 +293,6 @@ function generateManeuverInfo(orbits, burns) {
             info.innerHTML+= '<br>';
         }   
     })
-
-    let totalDeltaV = 0;
-    burns.forEach(burn => {
-        totalDeltaV += Math.abs(burn);
-    });
-
-    createTitle("Total Δv: "+totalDeltaV.toLocaleString() +" m/s");
 
     // credit
     info.innerHTML += '<div id="credit" style=""> To see more of my projects, visit <a href="https://mathusan.net">mathusan.net</a></div>';

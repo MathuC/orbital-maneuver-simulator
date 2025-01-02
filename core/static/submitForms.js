@@ -34,7 +34,7 @@ function submitManeuverForm(event) {
             simulation = new ManeuverSimulation(orbits, data.burns, data.max_length, data.earth_pos);
             loadingScreen.stop();
             simulation.start();
-            generateManeuverInfo(orbits, data.burns);
+            generateManeuverInfo(orbits, data.burns, data.total_delta_v_list, data.strat_id);
         })
         .catch(error => {
             alert('Error: '+ error); 
