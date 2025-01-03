@@ -12,6 +12,13 @@ def normalize_angle(angle):
 def standardize_angle(angle):
     return round(angle * (10 ** 15))/(10 ** 15) 
 
+def compute_total_delta_t(orbits):
+    total_delta_t = 0
+    for orbit in orbits[1:-1]:
+        angle_in_orbit = normalize_angle(orbit["end_arg"] - orbit["start_arg"])
+        total_delta_t += angle_in_orbit * math.sqrt(((orbit["axis"] * 1000) ** 3)/(G * EARTH_MASS))
+    return round(total_delta_t)
+
 def ellipse_bounding_box(a, e, theta):
 
     #semi minor axis
@@ -191,7 +198,8 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
             
                 if (isEqual(orbits[-1], end_orbit)):
                     total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
-                    strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v})
+                    total_delta_t = compute_total_delta_t(orbits)
+                    strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v, 'total_delta_t': total_delta_t})
                     continue
 
             # STEP 2: Make the orbit circular if you need to change arg later
@@ -219,7 +227,8 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
 
                 if (isEqual(orbits[-1], end_orbit)):
                     total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
-                    strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v})
+                    total_delta_t = compute_total_delta_t(orbits)
+                    strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v, 'total_delta_t': total_delta_t})
                     continue
 
             # STEP 3: Reach end_orbit's periapsis
@@ -251,7 +260,8 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
             orbits.append(newOrbit)
 
             total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
-            strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v})
+            total_delta_t = compute_total_delta_t(orbits)
+            strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v, 'total_delta_t': total_delta_t})
         
         # STRATEGY 3 and 4 (Reach end_orbit's periapsis first)
         else:
@@ -315,7 +325,8 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
 
                 if (isEqual(orbits[-1], end_orbit)):
                     total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
-                    strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v})
+                    total_delta_t = compute_total_delta_t(orbits)
+                    strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v, 'total_delta_t': total_delta_t})
                     continue
             
             # STEP 2: Make the orbit circular if you need to change arg later
@@ -341,7 +352,8 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
 
                 if (isEqual(orbits[-1], end_orbit)):
                     total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
-                    strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v})
+                    total_delta_t = compute_total_delta_t(orbits)
+                    strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v, 'total_delta_t': total_delta_t})
                     continue
 
             # STEP 3: Reach end_orbit's apoapsis
@@ -372,11 +384,14 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
             orbits.append(newOrbit)
 
             total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
-            strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v})
+            total_delta_t = compute_total_delta_t(orbits)
+            strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v, 'total_delta_t': total_delta_t})
 
     strat_id, best_strat = min(enumerate(strat_outputs), key = lambda x : x[1]['total_delta_v'])
     total_delta_v_list = [output['total_delta_v'] for output in strat_outputs]
+    total_delta_t_list = [output['total_delta_t'] for output in strat_outputs]
 
     max_length, earth_pos = max_length_earth_pos(best_strat['orbits']).values()
     return {"orbits": best_strat['orbits'], "burns": best_strat['burns'], "max_length": max_length, 
-            "earth_pos": earth_pos, "total_delta_v_list": total_delta_v_list, "strat_id": strat_id}
+            "earth_pos": earth_pos, "total_delta_v_list": total_delta_v_list, 
+            "total_delta_t_list": total_delta_t_list, "strat_id": strat_id}

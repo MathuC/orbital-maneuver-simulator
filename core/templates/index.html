@@ -21,9 +21,10 @@
                     <center><button id="play-pause-btn">&#9654;</button><br></center>
                     <label id="speed-label"> Simulation speed: <span id='speed-value'>1 h/s</span></label><br>
                     <center><input type="range" id="speed-slider" min="1" max="24" step="1" value="1"></center>
-                    <input id="orbital-path-checkbox" class="checkboxes" type="checkbox" checked><label style="padding-left: 5px;"> Orbital path</label><br>
-                    <input id="velocity-checkbox" class="checkboxes" type="checkbox" checked><label style="padding-left: 5px; color:blue; font-size: 16px; font-weight: 900;"> \( \vec{v} \) </label><br>
-                    <input id="acceleration-checkbox" class="checkboxes" type="checkbox" checked><label style="padding-left: 5px; color:red; font-size: 16px; font-weight: 900;"> \( \vec{a} \) </label><br>
+                    <input id="orbital-path-checkbox" class="checkboxes" type="checkbox" checked><label style="padding-left: 5px;"> Orbital path</label>
+                    <input id="velocity-checkbox" class="checkboxes" type="checkbox" checked><label style="padding-left: 5px; color:blue; font-size: 16px; font-weight: 900;"> \( \vec{v} \) </label>
+                    <input id="acceleration-checkbox" class="checkboxes" type="checkbox" checked><label style="padding-left: 5px; color:red; font-size: 16px; font-weight: 900;"> \( \vec{a} \) </label>
+                    <br>
                 </div>
                     <div id="tabs">
                         <span id="orbit-tab-btn" onclick="handleOrbitTabClick()">Orbit</span> 
@@ -86,8 +87,11 @@
             </div>
         </div>
         <div id='info-container'> 
-            <div id="my-chart-container"> <!-- container is necessary to limit the charts' height -->
-                <canvas id="v-chart" height="350px"></canvas>
+            <div id="velocity-chart-container"> <!-- container is necessary to limit the charts' height -->
+                <canvas id="velocity-chart" height="300px"></canvas>
+            </div>
+            <div id="time-chart-container">
+                <canvas id="time-chart" height="300px"></canvas>
             </div>
             <span id="info"></span>
         </div>

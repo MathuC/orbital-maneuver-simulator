@@ -194,7 +194,7 @@ triggerChangeMaxEcc("maneuver-axis-2", "maneuver-ecc-2");
 
 // info
 
-// format time for info generating functions
+// format time in s to h, m, s for info generating functions
 function formatTime(time) {
     let hours = Math.floor(time/3600);
     let minutes = Math.floor((time % 3600)/60);
@@ -204,8 +204,10 @@ function formatTime(time) {
 }
 
 const info = document.getElementById("info");
-const velocityChartCtx = document.getElementById('v-chart');
+const velocityChartCtx = document.getElementById('velocity-chart');
 let velocityChart;
+const timeChartCtx = document.getElementById('time-chart');
+let timeChart;
 
 // creates line for info generating functions
 function createLine(name, value) {
@@ -224,8 +226,10 @@ function generateOrbitInfo(orbit) {
     info.innerHTML = "";
     if (typeof velocityChart !== "undefined") {
         velocityChart.destroy();
+        timeChart.destroy();
     }
     velocityChartCtx.style.display='none';
+    timeChartCtx.style.display='none';
     
     createLine("Semi-Major Axis", orbit.semiMajorAxis.toLocaleString() + " km");
     createLine("Semi-Minor Axis", Math.round(orbit.semiMinorAxis).toLocaleString() + " km");
@@ -241,7 +245,7 @@ function generateOrbitInfo(orbit) {
 }
 
 // maneuver info
-function generateManeuverInfo(orbits, burns, totalDeltaVList, stratId) {
+function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, stratId) {
 
     // chart.js makes min bar nearly invisible, this function is to make min bar more visible
     function barChartMin(min, max) {
@@ -258,13 +262,20 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, stratId) {
 
     if (typeof velocityChart !== "undefined") {
         velocityChart.destroy();
+        timeChart.destroy()
     }
     velocityChartCtx.style.display='block';
+    timeChartCtx.style.display='block';
 
     let velocityChartBgColor = new Array(totalDeltaVList.length).fill('rgba(100, 100, 200, 0.2)');
     let velocityChartBorderColor = new Array(totalDeltaVList.length).fill('rgba(0, 0, 200, 0.7)');
     velocityChartBgColor[stratId] = 'rgba(0, 160, 0, 0.2)';
     velocityChartBorderColor[stratId] = 'rgba(30, 100, 30, 0.7)';
+
+    let timeChartBgColor = new Array(totalDeltaVList.length).fill('rgba(200, 100, 100, 0.2)');
+    let timeChartBorderColor = new Array(totalDeltaVList.length).fill('rgba(200, 0, 0, 0.7)');
+    timeChartBgColor[stratId] = 'rgba(0, 160, 0, 0.2)';
+    timeChartBorderColor[stratId] = 'rgba(30, 100, 30, 0.7)';
 
     velocityChart = new Chart(velocityChartCtx, {
         type: 'bar',
@@ -332,11 +343,77 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, stratId) {
         }
     });
 
+    timeChart = new Chart(timeChartCtx, {
+        type: 'bar',
+        data: {
+          labels: ['1', '2', '3', '4'],
+          datasets: [{
+            label: 'Total Δt',
+            data: totalDeltaTList,
+            borderWidth: 1,
+            backgroundColor: timeChartBgColor,
+            borderColor: timeChartBorderColor
+          }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    min: barChartMin(Math.min(...totalDeltaTList), Math.max(...totalDeltaTList)),
+                    title: {
+                        display: true,
+                        text: 'Total Δt (s)',
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Strategies',
+                        font: {
+                            size: 14
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false // it is displayed by default
+                },
+                title: {
+                    display: true,
+                    text: 'Total Δt Across Strategies',
+                    font: {
+                        size: 14
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            let value = tooltipItems[0].label; 
+                            return `Strategy ${value}`;
+                        },
+                        label: function(tooltipItem) {
+                            let value = tooltipItem.raw; // Get the value of the bar and format it
+                            
+                            // Append the unit
+                            return `Total Δt: ${formatTime(value)}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
     createTitle("Selected: Strategy " + (stratId+1) , null);
     createLine("Strategy " + (stratId+1) + " Description", null);
-    createLine("Optimization Criteria", "Minimize fuel");
-    createLine("Total Δv", totalDeltaVList[stratId].toLocaleString() +" m/s (proportional to amount of fuel needed)");
-    createLine("Total Δt", null);
+    createLine("Optimization Criteria", "Save fuel");
+    createLine("Total Δv", totalDeltaVList[stratId].toLocaleString() + " m/s (proportional to amount of fuel needed)");
+    createLine("Total Δt", formatTime(totalDeltaTList[stratId]) + " (time spend in transfer orbits)");
     createLine("Number of Burns", burns.length);
     createLine("Number of Transfer Orbits", burns.length - 1);
     info.innerHTML += '<br>';

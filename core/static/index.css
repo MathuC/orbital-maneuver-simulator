@@ -48,8 +48,19 @@ body {
 }
 
 .checkboxes {
-    margin-left: 45px;
     transform: scale(1.2);
+}
+
+#orbital-path-checkbox {
+    margin-left: 25px;
+}
+
+#velocity-checkbox {
+    margin-left: 15px;
+}
+
+#acceleration-checkbox {
+    margin-left: 15px;
 }
 
 #tabs {
