@@ -1,6 +1,5 @@
 import math
 import numpy as np
-from functools import reduce
 
 G = 6.67430e-11
 EARTH_MASS = 5.972e24
@@ -197,7 +196,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                 orbits.append(newOrbit)
             
                 if (isEqual(orbits[-1], end_orbit)):
-                    total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
+                    total_delta_v = sum(map(abs, burns))
                     total_delta_t = compute_total_delta_t(orbits)
                     strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v, 'total_delta_t': total_delta_t})
                     continue
@@ -226,7 +225,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                 orbits.append(newOrbit)
 
                 if (isEqual(orbits[-1], end_orbit)):
-                    total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
+                    total_delta_v = sum(map(abs, burns))
                     total_delta_t = compute_total_delta_t(orbits)
                     strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v, 'total_delta_t': total_delta_t})
                     continue
@@ -259,7 +258,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
             burns.append(round((v2-v1)))
             orbits.append(newOrbit)
 
-            total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
+            total_delta_v = sum(map(abs, burns))
             total_delta_t = compute_total_delta_t(orbits)
             strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v, 'total_delta_t': total_delta_t})
         
@@ -324,7 +323,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                 orbits.append(newOrbit)
 
                 if (isEqual(orbits[-1], end_orbit)):
-                    total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
+                    total_delta_v = sum(map(abs, burns))
                     total_delta_t = compute_total_delta_t(orbits)
                     strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v, 'total_delta_t': total_delta_t})
                     continue
@@ -351,7 +350,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                 orbits.append(newOrbit)
 
                 if (isEqual(orbits[-1], end_orbit)):
-                    total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
+                    total_delta_v = sum(map(abs, burns))
                     total_delta_t = compute_total_delta_t(orbits)
                     strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v, 'total_delta_t': total_delta_t})
                     continue
@@ -383,7 +382,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
             burns.append(round((v2-v1)))
             orbits.append(newOrbit)
 
-            total_delta_v = reduce(lambda x, y: abs(x) + abs(y), burns)
+            total_delta_v = sum(map(abs, burns))
             total_delta_t = compute_total_delta_t(orbits)
             strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v, 'total_delta_t': total_delta_t})
 

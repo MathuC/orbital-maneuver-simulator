@@ -433,6 +433,7 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
     createLine("Number of Burns", burns.length);
     createLine("Number of Transfer Orbits", burns.length - 1);
     info.innerHTML += '<br>';
+    console.log(totalDeltaVList);
 
     orbits.forEach((orbit, id) => {
         createTitle(orbitTypeTitleMap[orbit.type], orbitTypeColorMap[orbit.type]);
