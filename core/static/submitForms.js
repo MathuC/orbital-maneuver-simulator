@@ -125,6 +125,10 @@ function formValidator(formData) {
         if (isManeuverForm) {
             sameOrbits = true;
             for (let i = 0; i < 3; i++) {
+                // if both orbits are circle, even if argument of periapsis are different, they define the same orbit
+                if (i == 2 && sameOrbits && formData.get("maneuver-ecc-1-value") == 0) { 
+                    break;
+                }
                 sameOrbits = sameOrbits && (formData.get(ids[i]+ '-value') == formData.get(ids[i+3] + '-value'));
             }
             diffOrbitsCheck = !sameOrbits;
