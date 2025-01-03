@@ -85,7 +85,12 @@
                     </div>
             </div>
         </div>
-        <div id="info"> </div>
+        <div id='info-container'> 
+            <div id="my-chart-container"> <!-- container is necessary to limit the charts' height -->
+                <canvas id="v-chart" height="350px"></canvas>
+            </div>
+            <span id="info"></span>
+        </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <script>

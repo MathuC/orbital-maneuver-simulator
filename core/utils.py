@@ -134,7 +134,6 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
             # STEP 1: Reach end_orbit's apoapsis
             if ((strat == 0 and (apoapsis(orbits[-1]) != apoapsis(end_orbit))) or (strat == 1 and (periapsis(orbits[-1]) != apoapsis(end_orbit)))):
                 newOrbit = {}
-                newOrbit["axis"] = axis(periapsis(orbits[-1]), apoapsis(end_orbit))
 
                 # if orbits[-1] is a circle, then do the rotation of the orbit and the same time of this burn, same for strat 1 and 2
                 if (periapsis(orbits[-1]) == apoapsis(orbits[-1])):
@@ -144,8 +143,10 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                         newOrbit["arg"] = end_orbit["arg"]
                     else: # newOrbit's periapsis and apoapsis switch sides
                         newOrbit["arg"] = normalize_angle(end_orbit["arg"] + math.pi)
+                
                 # STRATEGY 1: apoapsis -> apoapsis
-                if (strat == 0 and (apoapsis(orbits[-1]) != apoapsis(end_orbit))): 
+                if (strat == 0 and (apoapsis(orbits[-1]) != apoapsis(end_orbit))):
+                    newOrbit["axis"] = axis(periapsis(orbits[-1]), apoapsis(end_orbit)) 
 
                     if (periapsis(orbits[-1]) != apoapsis(orbits[-1])):
                         orbits[-1]["end_arg"] = 2 * math.pi
@@ -160,9 +161,13 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                     else:
                         newOrbit["ecc"] = eccentricity(apoapsis(end_orbit), periapsis(orbits[-1]))
                         newOrbit["start_arg"] = math.pi
+
+                    v1 = velocity(periapsis(orbits[-1]), orbits[-1]["axis"])
+                    v2 = velocity(periapsis(orbits[-1]), newOrbit["axis"])
                 
                 # STRATEGY 2: periapsis -> apoapsis
                 elif (strat == 1 and (periapsis(orbits[-1]) != apoapsis(end_orbit))):
+                    newOrbit["axis"] = axis(apoapsis(orbits[-1]), apoapsis(end_orbit)) 
                     
                     if (periapsis(orbits[-1]) != apoapsis(orbits[-1])):
                         orbits[-1]["end_arg"] = math.pi
@@ -178,8 +183,9 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                         newOrbit["ecc"] = eccentricity(apoapsis(end_orbit), apoapsis(orbits[-1]))
                         newOrbit["start_arg"] = math.pi
 
-                v1 = velocity(periapsis(orbits[-1]), orbits[-1]["axis"])
-                v2 = velocity(periapsis(orbits[-1]), newOrbit["axis"])
+                    v1 = velocity(apoapsis(orbits[-1]), orbits[-1]["axis"])
+                    v2 = velocity(apoapsis(orbits[-1]), newOrbit["axis"])
+
                 burns.append(round((v2-v1)))
                 orbits.append(newOrbit)
             
@@ -253,7 +259,6 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
             # STEP 1: Reach end_orbit's periapsis
             if ((strat == 2 and (periapsis(orbits[-1]) != periapsis(end_orbit))) or (strat == 3 and (periapsis(orbits[-1]) != apoapsis(end_orbit)))):
                 newOrbit = {}
-                newOrbit["axis"] = axis(periapsis(end_orbit), apoapsis(orbits[-1]))
 
                 if (periapsis(orbits[-1]) == apoapsis(orbits[-1])):
                     tempArg = normalize_angle(end_orbit["arg"] - orbits[-1]['arg'] + math.pi)
@@ -265,6 +270,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
 
                 # STRATEGY 3: periapsis -> periapsis
                 if (strat == 2 and (periapsis(orbits[-1]) != periapsis(end_orbit))): 
+                    newOrbit["axis"] = axis(apoapsis(orbits[-1]), periapsis(end_orbit))
                     
                     if (periapsis(orbits[-1]) != apoapsis(orbits[-1])):
                         orbits[-1]["end_arg"] = math.pi
@@ -279,9 +285,13 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                     else:
                         newOrbit["ecc"] = eccentricity(periapsis(end_orbit), apoapsis(orbits[-1]))
                         newOrbit["start_arg"] = math.pi
+
+                    v1 = velocity(apoapsis(orbits[-1]), orbits[-1]["axis"])
+                    v2 = velocity(apoapsis(orbits[-1]), newOrbit["axis"])
                 
                 # STRATEGY 4: apoapsis -> periapsis
                 elif (strat == 3 and (periapsis(orbits[-1]) != apoapsis(end_orbit))):
+                    newOrbit["axis"] = axis(periapsis(orbits[-1]), periapsis(end_orbit))
                     
                     if (periapsis(orbits[-1]) != apoapsis(orbits[-1])):
                         orbits[-1]["end_arg"] = 2 * math.pi
@@ -296,9 +306,10 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                     else:
                         newOrbit["ecc"] = eccentricity(periapsis(end_orbit), periapsis(orbits[-1]))
                         newOrbit["start_arg"] = math.pi
+                    
+                    v1 = velocity(periapsis(orbits[-1]), orbits[-1]["axis"])
+                    v2 = velocity(periapsis(orbits[-1]), newOrbit["axis"])
 
-                v1 = velocity(apoapsis(orbits[-1]), orbits[-1]["axis"])
-                v2 = velocity(apoapsis(orbits[-1]), newOrbit["axis"])
                 burns.append(round((v2-v1)))
                 orbits.append(newOrbit)
 

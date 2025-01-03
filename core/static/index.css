@@ -138,7 +138,7 @@ body {
 
 
 /* info */
-#info {
+#info-container {
     font-family: Courier New;
     width: 850px; /* canvas width + right-panel min-width */
     border: 2px solid black;
