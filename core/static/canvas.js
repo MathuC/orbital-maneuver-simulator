@@ -236,7 +236,8 @@ class ManeuverSimulation {
             
             ctx.lineWidth = active ? 3 : 2;
             ctx.strokeStyle = orbitTypeColorMap[orbit.type].slice(0, -2) + (active ? 1 : inactiveOpacity) + ")";
-            if (orbit.type.includes("transfer")) {
+            // !(orbit.startArg == 0 && orbit.endArg == 2 * Math.PI) is a necessary check since without this check, ctx draws the orbit when end arg is 2pi and start arg is 0, even if it shoudn't
+            if (orbit.type != "end" && !(orbit.startArg == 0 && orbit.endArg == 2 * Math.PI)) {
                 ctx.setLineDash([5,5]);
                 ctx.beginPath();
                 ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, -orbit.endArg, -orbit.startArg, true); // negation of angles because of ctx.ellipse keeps angles clockwise even when drawing counterclockwise
@@ -245,8 +246,8 @@ class ManeuverSimulation {
             }
             ctx.beginPath();
             ctx.ellipse(0, 0, orbit.semiMajorAxis/this.kmPerPixel, orbit.semiMinorAxis/this.kmPerPixel, 0, 
-                orbit.type.includes("transfer") ? -orbit.startArg : 0, 
-                orbit.type.includes("transfer")?  -orbit.endArg: 2 * Math.PI, true);
+                orbit.type != "end" ? -orbit.startArg : 0, 
+                orbit.type != "end" ? -orbit.endArg : 2 * Math.PI, true);
             ctx.stroke();
             ctx.closePath();
             ctx.restore();

@@ -48,8 +48,19 @@ body {
 }
 
 .checkboxes {
-    margin-left: 45px;
     transform: scale(1.2);
+}
+
+#orbital-path-checkbox {
+    margin-left: 35px;
+}
+
+#velocity-checkbox {
+    margin-left: 5px;
+}
+
+#acceleration-checkbox {
+    margin-left: 5px;
 }
 
 #tabs {
@@ -108,12 +119,7 @@ body {
     font-size: 12px;
 }
 
-#initial-orbit {
-    font-size: 14px;
-    font-weight: bold;
-}
-
-#final-orbit {
+.form-title  {
     font-size: 14px;
     font-weight: bold;
 }
@@ -124,6 +130,22 @@ body {
 
 #final-orbit-container {
     margin-bottom: 20px;
+}
+
+#optimization-toggle {
+    position: relative;
+    top: 4px;
+    width: 35px;
+}
+
+#time-label {
+    padding: 2px;
+}
+
+#fuel-label {
+    padding: 2px;
+    font-weight: bold;
+    border: 1px solid black;
 }
 
 #maneuver-submit-btn {
@@ -138,7 +160,7 @@ body {
 
 
 /* info */
-#info {
+#info-container {
     font-family: Courier New;
     width: 850px; /* canvas width + right-panel min-width */
     border: 2px solid black;

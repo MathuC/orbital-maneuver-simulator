@@ -34,7 +34,8 @@ function submitManeuverForm(event) {
             simulation = new ManeuverSimulation(orbits, data.burns, data.max_length, data.earth_pos);
             loadingScreen.stop();
             simulation.start();
-            generateManeuverInfo(orbits, data.burns);
+            generateManeuverInfo(orbits, data.burns, data.total_delta_v_list, data.total_delta_t_list, 
+                data.strat_id, parseInt(formData.get("optimization-toggle")));
         })
         .catch(error => {
             alert('Error: '+ error); 
@@ -125,6 +126,10 @@ function formValidator(formData) {
         if (isManeuverForm) {
             sameOrbits = true;
             for (let i = 0; i < 3; i++) {
+                // if both orbits are circle, even if argument of periapsis are different, they define the same orbit
+                if (i == 2 && sameOrbits && formData.get("maneuver-ecc-1-value") == 0) { 
+                    break;
+                }
                 sameOrbits = sameOrbits && (formData.get(ids[i]+ '-value') == formData.get(ids[i+3] + '-value'));
             }
             diffOrbitsCheck = !sameOrbits;

@@ -3,6 +3,16 @@ const orbitTypeColorMap = {"start": "rgba(30, 144, 255, 1)", "transfer1": "rgba(
     "transfer2": "rgba(255, 140, 0, 1)", "end": "rgba(255, 255, 0, 1)"};
 const orbitTypeTitleMap = {"start": "Initial Orbit", "transfer1": "Transfer Orbit 1", 
     "transfer2": "Transfer Orbit 2", "end": "Final Orbit"};
+const stratAlgs = [
+    "<b>1.</b> Current apoapsis := Final apoapsis <b>2.</b> Circularize orbit to reach final argument of periapsis <b>3.</b> Radius := Final periapsis",
+    "<b>1.</b> Current periapsis := Final apoapsis <b>2.</b> Circularize orbit to reach final argument of periapsis <b>3.</b> Radius := Final periapsis",
+    "<b>1.</b> Current periapsis := Final periapsis <b>2.</b> Circularize orbit to reach final argument of periapsis <b>3.</b> Radius := Final apoapsis",
+    "<b>1.</b> Current apoapsis := Final periapsis <b>2.</b> Circularize orbit to reach final argument of periapsis <b>3.</b> Radius := Final apoapsis",
+    "<b>1.</b> Circularize orbit at the current periapsis to reach final argument of periapsis <b>2.</b> Radius := Final apoapsis <b>3.</b> Remaining apsis := Final periapsis",
+    "<b>1.</b> Circularize orbit at the current apoapsis to reach final argument of periapsis <b>2.</b> Radius := Final apoapsis <b>3.</b> Remaining apsis := Final periapsis",
+    "<b>1.</b> Circularize orbit at the current periapsis to reach final argument of periapsis <b>2.</b> Radius := Final periapsis <b>3.</b> Remaining apsis := Final apoapsis",
+    "<b>1.</b> Circularize orbit at the current apoapsis to reach final argument of periapsis <b>2.</b> Radius := Final periapsis <b>3.</b> Remaining apsis := Final apoapsis"
+];
 
 // toggles
 document.getElementById("play-pause-btn").addEventListener('click', () => {
@@ -191,9 +201,29 @@ triggerChangeMaxEcc("orbit-axis", "orbit-ecc");
 triggerChangeMaxEcc("maneuver-axis-1", "maneuver-ecc-1");
 triggerChangeMaxEcc("maneuver-axis-2", "maneuver-ecc-2");
 
+// save
+
+const optToggle = document.getElementById("optimization-toggle");
+const timeLabel = document.getElementById("time-label");
+const fuelLabel = document.getElementById("fuel-label");
+optToggle.addEventListener("input", () => {
+    if (optToggle.value == 0){
+        timeLabel.style.fontWeight = "bold";
+        timeLabel.style.border = "1px solid black";
+        fuelLabel.style.fontWeight = "normal";
+        fuelLabel.style.border = "none";
+    } else {
+        fuelLabel.style.fontWeight = "bold";
+        fuelLabel.style.border = "1px solid black";
+        timeLabel.style.fontWeight = "normal";
+        timeLabel.style.border = "none";
+    }
+});
 
 
-// format time for info generating functions
+// info
+
+// format time in s to h, m, s for info generating functions
 function formatTime(time) {
     let hours = Math.floor(time/3600);
     let minutes = Math.floor((time % 3600)/60);
@@ -202,21 +232,33 @@ function formatTime(time) {
     return `${hours}h ${minutes}m ${seconds}s`;
 }
 
-
-// info
-
 const info = document.getElementById("info");
+const velocityChartCtx = document.getElementById('velocity-chart');
+let velocityChart;
+const timeChartCtx = document.getElementById('time-chart');
+let timeChart;
 
-// create line for info generating functions
+// creates line for info generating functions
 function createLine(name, value) {
     info.innerHTML += '<b>' + name + ': </b>' + value + '<br>';
+}
+
+// creates title for info generating functions
+function createTitle(name, color) {
+    info.innerHTML += '<span class="info-title">' + name + '</span>' + 
+    '<div style="width:20px;height:20px;margin-left:10px;display:inline-block;background-color:'+color+'"></div><br>';
 }
 
 // orbit info
 function generateOrbitInfo(orbit) {  
 
-    const info = document.getElementById("info");
     info.innerHTML = "";
+    if (typeof velocityChart !== "undefined") {
+        velocityChart.destroy();
+        timeChart.destroy();
+    }
+    velocityChartCtx.style.display='none';
+    timeChartCtx.style.display='none';
     
     createLine("Semi-Major Axis", orbit.semiMajorAxis.toLocaleString() + " km");
     createLine("Semi-Minor Axis", Math.round(orbit.semiMinorAxis).toLocaleString() + " km");
@@ -232,14 +274,184 @@ function generateOrbitInfo(orbit) {
 }
 
 // maneuver info
-function generateManeuverInfo(orbits, burns) {
+function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, stratId, optimization) {
+
+    // chart.js makes min bar nearly invisible, this function is to make min bar more visible
+    function barChartMin(min, max) {
+        let minValue = min - (max - min)/2;
+        if ((max - min) == 0) {
+            minValue = minValue - 10; // so the bar is not invisible
+        }
+        minValue = minValue > 0 ? minValue: 0;
+        let precision = (max - min).toString().length - 1;
+        return Math.floor(minValue/(10 ** precision))*(10 ** precision);
+    }
 
     info.innerHTML = "";
 
-    function createTitle(name, color) {
-        info.innerHTML += '<span class="info-title">' + name + '</span>' + 
-        '<div style="width:20px;height:20px;margin-left:10px;display:inline-block;background-color:'+color+'"></div><br>';
+    if (typeof velocityChart !== "undefined") {
+        velocityChart.destroy();
+        timeChart.destroy()
     }
+    velocityChartCtx.style.display='block';
+    timeChartCtx.style.display='block';
+
+    let velocityChartBgColor = new Array(totalDeltaVList.length).fill('rgba(100, 100, 200, 0.2)');
+    let velocityChartBorderColor = new Array(totalDeltaVList.length).fill('rgba(0, 0, 200, 0.7)');
+    velocityChartBgColor[stratId] = 'rgba(0, 160, 0, 0.2)';
+    velocityChartBorderColor[stratId] = 'rgba(30, 100, 30, 0.7)';
+
+    let timeChartBgColor = new Array(totalDeltaVList.length).fill('rgba(200, 100, 100, 0.2)');
+    let timeChartBorderColor = new Array(totalDeltaVList.length).fill('rgba(200, 0, 0, 0.7)');
+    timeChartBgColor[stratId] = 'rgba(0, 160, 0, 0.2)';
+    timeChartBorderColor[stratId] = 'rgba(30, 100, 30, 0.7)';
+
+    velocityChart = new Chart(velocityChartCtx, {
+        type: 'bar',
+        data: {
+          labels: ['1', '2', '3', '4'],
+          datasets: [{
+            label: 'Total Δv',
+            data: totalDeltaVList,
+            borderWidth: 1,
+            backgroundColor: velocityChartBgColor,
+            borderColor: velocityChartBorderColor
+          }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    min: barChartMin(Math.min(...totalDeltaVList), Math.max(...totalDeltaVList)),
+                    title: {
+                        display: true,
+                        text: 'Total Δv (m/s)',
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Strategies',
+                        font: {
+                            size: 14
+                        },
+                        padding: {
+                            top: -4
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false // it is displayed by default
+                },
+                title: {
+                    display: true,
+                    text: 'Total Δv Across Strategies',
+                    font: {
+                        size: 14
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            let value = tooltipItems[0].label; 
+                            return `Strategy ${value}`;
+                        },
+                        label: function(tooltipItem) {
+                            let value = (tooltipItem.raw).toLocaleString(); // Get the value of the bar and format it
+                            
+                            // Append the unit
+                            return `Total Δv: ${value} m/s`; // Example unit: meters per second
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    timeChart = new Chart(timeChartCtx, {
+        type: 'bar',
+        data: {
+          labels: ['1', '2', '3', '4'],
+          datasets: [{
+            label: 'Total Δt',
+            data: totalDeltaTList,
+            borderWidth: 1,
+            backgroundColor: timeChartBgColor,
+            borderColor: timeChartBorderColor
+          }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    min: barChartMin(Math.min(...totalDeltaTList), Math.max(...totalDeltaTList)),
+                    title: {
+                        display: true,
+                        text: 'Total Δt (s)',
+                        font: {
+                            size: 14
+                        }
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Strategies',
+                        font: {
+                            size: 14
+                        },
+                        padding: {
+                            top: -4
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false // it is displayed by default
+                },
+                title: {
+                    display: true,
+                    text: 'Total Δt Across Strategies',
+                    font: {
+                        size: 14
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            let value = tooltipItems[0].label; 
+                            return `Strategy ${value}`;
+                        },
+                        label: function(tooltipItem) {
+                            let value = tooltipItem.raw; // Get the value of the bar and format it
+                            
+                            // Append the unit
+                            return `Total Δt: ${formatTime(value)}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    createTitle("Optimal Maneuver with Strategy " + (stratId+1) , null);
+    createLine("Optimization", optimization ? "Save fuel" : "Save time");
+    createLine("Strategy " + (stratId+1) + " Algorithm", stratAlgs[stratId]);
+    createLine("Total Δv", totalDeltaVList[stratId].toLocaleString() + " m/s (proportional to amount of fuel used)");
+    createLine("Total Δt", formatTime(totalDeltaTList[stratId]) + " (time spent in the transfer orbit(s))");
+    createLine("Number of Burns", burns.length);
+    createLine("Number of Transfer Orbits", burns.length - 1);
+    info.innerHTML += '<br>';
 
     orbits.forEach((orbit, id) => {
         createTitle(orbitTypeTitleMap[orbit.type], orbitTypeColorMap[orbit.type]);
@@ -251,8 +463,8 @@ function generateManeuverInfo(orbits, burns) {
         createLine("Focal Distance", Math.round(orbit.focalDistance).toLocaleString() + " km");
         createLine("Argument of Periapsis", Math.round(orbit.argumentOfPeriapsis * 180/Math.PI) + "°");
         createLine("Orbital Period", formatTime(orbit.orbitalPeriod));
-        info.innerHTML+= '<br>';
         if (orbit.type != "end") {
+            info.innerHTML+= '<br>';
             createTitle("Burn " + (id + 1), orbitTypeColorMap[orbit.type]);
             createLine("Orbit", orbitTypeTitleMap[orbit.type]);
             let theta = orbit["endArg"] % (2 * Math.PI);
@@ -269,13 +481,6 @@ function generateManeuverInfo(orbits, burns) {
             info.innerHTML+= '<br>';
         }   
     })
-
-    let totalDeltaV = 0;
-    burns.forEach(burn => {
-        totalDeltaV += Math.abs(burn);
-    });
-
-    createTitle("Total Δv: "+totalDeltaV.toLocaleString() +" m/s");
 
     // credit
     info.innerHTML += '<div id="credit" style=""> To see more of my projects, visit <a href="https://mathusan.net">mathusan.net</a></div>';
