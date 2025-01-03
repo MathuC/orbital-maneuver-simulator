@@ -277,12 +277,13 @@ function generateOrbitInfo(orbit) {
 function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, stratId, optimization) {
 
     // chart.js makes min bar nearly invisible, this function is to make min bar more visible
+    // since min bar is for the chosen strategy
     function barChartMin(min, max) {
         let minValue = min - (max - min)/2;
         if ((max - min) == 0) {
             minValue = minValue - 10; // so the bar is not invisible
         }
-        minValue = minValue > 0 ? minValue: 0;
+        minValue = minValue < 0 ? 0: minValue;
         let precision = (max - min).toString().length - 1;
         return Math.floor(minValue/(10 ** precision))*(10 ** precision);
     }
@@ -443,10 +444,25 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
             }
         }
     });
+    info.innerHTML += '<br>';
+    createTitle("Strategy " + (stratId+1) + ": The Most " + (optimization ? "Fuel" : "Time") + "-Efficient Option" , null);
+    
+    stratAlgHTML = ""
+    stratAlgHTML += '<div id="strat-tooltip-hover-container">';
+    stratAlgHTML += '<b>' + "Strategy " + (stratId+1) + " Algorithm" + ': </b>' + stratAlgs[stratId] + '<br>';
+    stratAlgHTML += '<span id="strat-tooltip">';
+    stratAlgs.forEach((alg, id) => {
+        stratAlgHTML += '<b> Strategy ' + (id + 1) +': </b>';
+        stratAlgHTML += alg;
+        if (id != stratAlgs.length - 1) {
+            stratAlgHTML += '<br>';
+        }
+    });
+    stratAlgHTML += '</span>';
+    stratAlgHTML += '</div>';
+    info.innerHTML += stratAlgHTML;
 
-    createTitle("Optimal Maneuver with Strategy " + (stratId+1) , null);
-    createLine("Optimization", optimization ? "Save fuel" : "Save time");
-    createLine("Strategy " + (stratId+1) + " Algorithm", stratAlgs[stratId]);
+    createLine("Optimization", "Save the most " + (optimization ? "fuel" : "time"));
     createLine("Total Δv", totalDeltaVList[stratId].toLocaleString() + " m/s (proportional to amount of fuel used)");
     createLine("Total Δt", formatTime(totalDeltaTList[stratId]) + " (time spent in the transfer orbit(s))");
     createLine("Number of Burns", burns.length);
