@@ -390,8 +390,6 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
     total_delta_v_list = [output['total_delta_v'] for output in strat_outputs]
     total_delta_t_list = [output['total_delta_t'] for output in strat_outputs]
 
-    best_strat = strat_outputs[3]
-
     max_length, earth_pos = max_length_earth_pos(best_strat['orbits']).values()
     return {"orbits": best_strat['orbits'], "burns": best_strat['burns'], "max_length": max_length, 
             "earth_pos": earth_pos, "total_delta_v_list": total_delta_v_list, 

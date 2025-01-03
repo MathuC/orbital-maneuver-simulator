@@ -425,7 +425,7 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
         }
     });
 
-    createTitle("Optimal Maneuver: Strategy " + (stratId+1) , null);
+    createTitle("Optimal Maneuver with Strategy " + (stratId+1) , null);
     createLine("Optimization Criteria", "Save fuel");
     createLine("Strategy " + (stratId+1) + " Algorithm", stratAlgs[stratId]);
     createLine("Total Δv", totalDeltaVList[stratId].toLocaleString() + " m/s (proportional to amount of fuel used)");
@@ -433,7 +433,6 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
     createLine("Number of Burns", burns.length);
     createLine("Number of Transfer Orbits", burns.length - 1);
     info.innerHTML += '<br>';
-    console.log(totalDeltaVList);
 
     orbits.forEach((orbit, id) => {
         createTitle(orbitTypeTitleMap[orbit.type], orbitTypeColorMap[orbit.type]);
