@@ -177,7 +177,7 @@ body {
 #strat-tooltip {
     visibility: hidden; /* Initially hidden */
     position: absolute;
-    background-color: #575555;
+    background-color: black;
     color: white;
     border-radius: 5px;
     padding: 10px;
@@ -191,7 +191,7 @@ body {
 
 #strat-tooltip-hover-container:hover #strat-tooltip {
     visibility: visible;
-    opacity: 0.9;
+    opacity: 0.8;
 }
 
 #credit {
