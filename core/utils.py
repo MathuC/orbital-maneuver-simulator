@@ -267,7 +267,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
         else:
         
             # STEP 1: Reach end_orbit's periapsis
-            if ((strat == 2 and (periapsis(orbits[-1]) != periapsis(end_orbit))) or (strat == 3 and (periapsis(orbits[-1]) != apoapsis(end_orbit)))):
+            if ((strat == 2 and (periapsis(orbits[-1]) != periapsis(end_orbit))) or (strat == 3 and (apoapsis(orbits[-1]) != periapsis(end_orbit)))):
                 newOrbit = {}
 
                 if (periapsis(orbits[-1]) == apoapsis(orbits[-1])):
@@ -300,7 +300,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                     v2 = velocity(apoapsis(orbits[-1]), newOrbit["axis"])
                 
                 # STRATEGY 4: apoapsis -> periapsis
-                elif (strat == 3 and (periapsis(orbits[-1]) != apoapsis(end_orbit))):
+                elif (strat == 3 and (apoapsis(orbits[-1]) != periapsis(end_orbit))):
                     newOrbit["axis"] = axis(periapsis(orbits[-1]), periapsis(end_orbit))
                     
                     if (periapsis(orbits[-1]) != apoapsis(orbits[-1])):
@@ -390,6 +390,8 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
     strat_id, best_strat = min(enumerate(strat_outputs), key = lambda x : x[1]['total_delta_v'])
     total_delta_v_list = [output['total_delta_v'] for output in strat_outputs]
     total_delta_t_list = [output['total_delta_t'] for output in strat_outputs]
+
+    best_strat = strat_outputs[3]
 
     max_length, earth_pos = max_length_earth_pos(best_strat['orbits']).values()
     return {"orbits": best_strat['orbits'], "burns": best_strat['burns'], "max_length": max_length, 

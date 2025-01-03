@@ -3,6 +3,16 @@ const orbitTypeColorMap = {"start": "rgba(30, 144, 255, 1)", "transfer1": "rgba(
     "transfer2": "rgba(255, 140, 0, 1)", "end": "rgba(255, 255, 0, 1)"};
 const orbitTypeTitleMap = {"start": "Initial Orbit", "transfer1": "Transfer Orbit 1", 
     "transfer2": "Transfer Orbit 2", "end": "Final Orbit"};
+const stratAlgs = [
+    "<b>1.</b> Current apoapsis -> Final apoapsis <b>2.</b> Circularize orbit to reach final argument of periapsis <b>3.</b> Radius -> Final periapsis",
+    "<b>1.</b> Current periapsis -> Final apoapsis <b>2.</b> Circularize orbit to reach final argument of periapsis <b>3.</b> Radius -> Final periapsis",
+    "<b>1.</b> Current periapsis -> Final periapsis <b>2.</b> Circularize orbit to reach final argument of periapsis <b>3.</b> Radius -> Final apoapsis",
+    "<b>1.</b> Current apoapsis -> Final periapsis <b>2.</b> Circularize orbit to reach final argument of periapsis <b>3.</b> Radius -> Final apoapsis",
+    "<b>1.</b> Circularize orbit at the current periapsis to reach final argument of periapsis <b>2.</b> Radius -> Final apoapsis <b>3.</b> Remaining apsis -> Final periapsis",
+    "<b>1.</b> Circularize orbit at the current apoapsis to reach final argument of periapsis <b>2.</b> Radius -> Final apoapsis <b>3.</b> Remaining apsis -> Final periapsis",
+    "<b>1.</b> Circularize orbit at the current periapsis to reach final argument of periapsis <b>2.</b> Radius -> Final periapsis <b>3.</b> Remaining apsis -> Final apoapsis",
+    "<b>1.</b> Circularize orbit at the current apoapsis to reach final argument of periapsis <b>2.</b> Radius -> Final periapsis <b>3.</b> Remaining apsis -> Final apoapsis"
+];
 
 // toggles
 document.getElementById("play-pause-btn").addEventListener('click', () => {
@@ -310,6 +320,9 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
                         text: 'Strategies',
                         font: {
                             size: 14
+                        },
+                        padding: {
+                            top: -4
                         }
                     }
                 }
@@ -376,6 +389,9 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
                         text: 'Strategies',
                         font: {
                             size: 14
+                        },
+                        padding: {
+                            top: -4
                         }
                     }
                 }
@@ -409,11 +425,11 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
         }
     });
 
-    createTitle("Selected: Strategy " + (stratId+1) , null);
-    createLine("Strategy " + (stratId+1) + " Description", null);
+    createTitle("Optimal Maneuver: Strategy " + (stratId+1) , null);
     createLine("Optimization Criteria", "Save fuel");
-    createLine("Total Δv", totalDeltaVList[stratId].toLocaleString() + " m/s (proportional to amount of fuel needed)");
-    createLine("Total Δt", formatTime(totalDeltaTList[stratId]) + " (time spend in transfer orbits)");
+    createLine("Strategy " + (stratId+1) + " Algorithm", stratAlgs[stratId]);
+    createLine("Total Δv", totalDeltaVList[stratId].toLocaleString() + " m/s (proportional to amount of fuel used)");
+    createLine("Total Δt", formatTime(totalDeltaTList[stratId]) + " (time spent in the transfer orbit(s))");
     createLine("Number of Burns", burns.length);
     createLine("Number of Transfer Orbits", burns.length - 1);
     info.innerHTML += '<br>';
