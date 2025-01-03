@@ -93,7 +93,7 @@ def process_orbit_data(semi_major_axis: int, ecc: float, arg: int) -> dict:
 
     return {"max_length": max_length}
 
-def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
+def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> dict:
     # conversion to right primitives
     start_orbit["axis"] = int(start_orbit["axis"])
     start_orbit["ecc"] = float(start_orbit["ecc"])
@@ -102,6 +102,8 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
     end_orbit["axis"] = int(end_orbit["axis"])
     end_orbit["ecc"] = float(end_orbit["ecc"])
     end_orbit["arg"] = math.radians(int(end_orbit["arg"]))
+
+    optimization = int(optimization) # 1 is fuel, 0 is time
 
     def periapsis(orbit):
         return orbit["axis"] * (1 - orbit["ecc"])
@@ -123,10 +125,10 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
 
     # No end_arg can be equal to 0 since it will skip the orbit entirely so make it equal to 2 * math.pi
     # 4 Strategies. Choose the one that gives you the smallest total delta v
-    # Strategy 1: Start with apoapsis -> apoapsis
-    # Strategy 2: Start with periapsis -> apoapsis
-    # Strategy 3: Start with periapsis -> periapsis
-    # Strategy 4: Start with apoapsis -> periapsis   
+    # Strategy 1: Start with apoapsis := apoapsis
+    # Strategy 2: Start with periapsis := apoapsis
+    # Strategy 3: Start with periapsis := periapsis
+    # Strategy 4: Start with apoapsis := periapsis   
 
     strat_outputs = []
 
@@ -150,7 +152,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                     else: # newOrbit's periapsis and apoapsis switch sides
                         newOrbit["arg"] = normalize_angle(end_orbit["arg"] + math.pi)
                 
-                # STRATEGY 1: apoapsis -> apoapsis
+                # STRATEGY 1: apoapsis := apoapsis
                 if (strat == 0 and (apoapsis(orbits[-1]) != apoapsis(end_orbit))):
                     newOrbit["axis"] = axis(periapsis(orbits[-1]), apoapsis(end_orbit)) 
 
@@ -171,7 +173,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                     v1 = velocity(periapsis(orbits[-1]), orbits[-1]["axis"])
                     v2 = velocity(periapsis(orbits[-1]), newOrbit["axis"])
                 
-                # STRATEGY 2: periapsis -> apoapsis
+                # STRATEGY 2: periapsis := apoapsis
                 elif (strat == 1 and (periapsis(orbits[-1]) != apoapsis(end_orbit))):
                     newOrbit["axis"] = axis(apoapsis(orbits[-1]), apoapsis(end_orbit)) 
                     
@@ -277,7 +279,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                     else: 
                         newOrbit["arg"] = end_orbit["arg"]
 
-                # STRATEGY 3: periapsis -> periapsis
+                # STRATEGY 3: periapsis := periapsis
                 if (strat == 2 and (periapsis(orbits[-1]) != periapsis(end_orbit))): 
                     newOrbit["axis"] = axis(apoapsis(orbits[-1]), periapsis(end_orbit))
                     
@@ -298,7 +300,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
                     v1 = velocity(apoapsis(orbits[-1]), orbits[-1]["axis"])
                     v2 = velocity(apoapsis(orbits[-1]), newOrbit["axis"])
                 
-                # STRATEGY 4: apoapsis -> periapsis
+                # STRATEGY 4: apoapsis := periapsis
                 elif (strat == 3 and (apoapsis(orbits[-1]) != periapsis(end_orbit))):
                     newOrbit["axis"] = axis(periapsis(orbits[-1]), periapsis(end_orbit))
                     
@@ -386,9 +388,13 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict) -> dict:
             total_delta_t = compute_total_delta_t(orbits)
             strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v, 'total_delta_t': total_delta_t})
 
-    strat_id, best_strat = min(enumerate(strat_outputs), key = lambda x : x[1]['total_delta_v'])
+    optFunction = lambda x : x[1]['total_delta_v' if optimization else 'total_delta_t'] 
+    strat_id, best_strat = min(enumerate(strat_outputs), key = optFunction)
     total_delta_v_list = [output['total_delta_v'] for output in strat_outputs]
     total_delta_t_list = [output['total_delta_t'] for output in strat_outputs]
+
+    # test strategies
+    # best_strat = strat_outputs[3]
 
     max_length, earth_pos = max_length_earth_pos(best_strat['orbits']).values()
     return {"orbits": best_strat['orbits'], "burns": best_strat['burns'], "max_length": max_length, 

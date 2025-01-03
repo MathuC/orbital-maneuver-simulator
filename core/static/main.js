@@ -4,14 +4,14 @@ const orbitTypeColorMap = {"start": "rgba(30, 144, 255, 1)", "transfer1": "rgba(
 const orbitTypeTitleMap = {"start": "Initial Orbit", "transfer1": "Transfer Orbit 1", 
     "transfer2": "Transfer Orbit 2", "end": "Final Orbit"};
 const stratAlgs = [
-    "<b>1.</b> Current apoapsis -> Final apoapsis <b>2.</b> Circularize orbit to reach final argument of periapsis <b>3.</b> Radius -> Final periapsis",
-    "<b>1.</b> Current periapsis -> Final apoapsis <b>2.</b> Circularize orbit to reach final argument of periapsis <b>3.</b> Radius -> Final periapsis",
-    "<b>1.</b> Current periapsis -> Final periapsis <b>2.</b> Circularize orbit to reach final argument of periapsis <b>3.</b> Radius -> Final apoapsis",
-    "<b>1.</b> Current apoapsis -> Final periapsis <b>2.</b> Circularize orbit to reach final argument of periapsis <b>3.</b> Radius -> Final apoapsis",
-    "<b>1.</b> Circularize orbit at the current periapsis to reach final argument of periapsis <b>2.</b> Radius -> Final apoapsis <b>3.</b> Remaining apsis -> Final periapsis",
-    "<b>1.</b> Circularize orbit at the current apoapsis to reach final argument of periapsis <b>2.</b> Radius -> Final apoapsis <b>3.</b> Remaining apsis -> Final periapsis",
-    "<b>1.</b> Circularize orbit at the current periapsis to reach final argument of periapsis <b>2.</b> Radius -> Final periapsis <b>3.</b> Remaining apsis -> Final apoapsis",
-    "<b>1.</b> Circularize orbit at the current apoapsis to reach final argument of periapsis <b>2.</b> Radius -> Final periapsis <b>3.</b> Remaining apsis -> Final apoapsis"
+    "<b>1.</b> Current apoapsis := Final apoapsis <b>2.</b> Circularize orbit to reach final argument of periapsis <b>3.</b> Radius := Final periapsis",
+    "<b>1.</b> Current periapsis := Final apoapsis <b>2.</b> Circularize orbit to reach final argument of periapsis <b>3.</b> Radius := Final periapsis",
+    "<b>1.</b> Current periapsis := Final periapsis <b>2.</b> Circularize orbit to reach final argument of periapsis <b>3.</b> Radius := Final apoapsis",
+    "<b>1.</b> Current apoapsis := Final periapsis <b>2.</b> Circularize orbit to reach final argument of periapsis <b>3.</b> Radius := Final apoapsis",
+    "<b>1.</b> Circularize orbit at the current periapsis to reach final argument of periapsis <b>2.</b> Radius := Final apoapsis <b>3.</b> Remaining apsis := Final periapsis",
+    "<b>1.</b> Circularize orbit at the current apoapsis to reach final argument of periapsis <b>2.</b> Radius := Final apoapsis <b>3.</b> Remaining apsis := Final periapsis",
+    "<b>1.</b> Circularize orbit at the current periapsis to reach final argument of periapsis <b>2.</b> Radius := Final periapsis <b>3.</b> Remaining apsis := Final apoapsis",
+    "<b>1.</b> Circularize orbit at the current apoapsis to reach final argument of periapsis <b>2.</b> Radius := Final periapsis <b>3.</b> Remaining apsis := Final apoapsis"
 ];
 
 // toggles
@@ -201,6 +201,25 @@ triggerChangeMaxEcc("orbit-axis", "orbit-ecc");
 triggerChangeMaxEcc("maneuver-axis-1", "maneuver-ecc-1");
 triggerChangeMaxEcc("maneuver-axis-2", "maneuver-ecc-2");
 
+// save
+
+const optToggle = document.getElementById("optimization-toggle");
+const timeLabel = document.getElementById("time-label");
+const fuelLabel = document.getElementById("fuel-label");
+optToggle.addEventListener("input", () => {
+    if (optToggle.value == 0){
+        timeLabel.style.fontWeight = "bold";
+        timeLabel.style.border = "1px solid black";
+        fuelLabel.style.fontWeight = "normal";
+        fuelLabel.style.border = "none";
+    } else {
+        fuelLabel.style.fontWeight = "bold";
+        fuelLabel.style.border = "1px solid black";
+        timeLabel.style.fontWeight = "normal";
+        timeLabel.style.border = "none";
+    }
+});
+
 
 // info
 
@@ -255,7 +274,7 @@ function generateOrbitInfo(orbit) {
 }
 
 // maneuver info
-function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, stratId) {
+function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, stratId, optimization) {
 
     // chart.js makes min bar nearly invisible, this function is to make min bar more visible
     function barChartMin(min, max) {
@@ -426,7 +445,7 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
     });
 
     createTitle("Optimal Maneuver with Strategy " + (stratId+1) , null);
-    createLine("Optimization Criteria", "Save fuel");
+    createLine("Optimization", optimization ? "Save fuel" : "Save time");
     createLine("Strategy " + (stratId+1) + " Algorithm", stratAlgs[stratId]);
     createLine("Total Δv", totalDeltaVList[stratId].toLocaleString() + " m/s (proportional to amount of fuel used)");
     createLine("Total Δt", formatTime(totalDeltaTList[stratId]) + " (time spent in the transfer orbit(s))");
