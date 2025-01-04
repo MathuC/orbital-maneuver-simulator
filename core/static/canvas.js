@@ -275,29 +275,6 @@ class ManeuverSimulation {
         ctx.rotate(this.orbits[this.currentOrbitId].argumentOfPeriapsis);
         ctx.drawImage(satImg, -this.satLength/2, -this.satLength/2, this.satLength, this.satLength);
         ctx.restore();
-
-        // draw vector: line and a arrow head
-        function drawVector(fromX, fromY, toX, toY, argumentOfPeriapsis, earthPos, color) {
-            ctx.save();
-            ctx.translate(canvas.width/2, canvas.height/2);
-            ctx.translate(...earthPos);
-            ctx.rotate(-argumentOfPeriapsis);
-            let headLen = 10;
-            let dx = toX - fromX;
-            let dy = toY - fromY;
-            let angle = Math.atan2(dy, dx);
-            ctx.beginPath();
-            ctx.strokeStyle = color;
-            ctx.moveTo(fromX, fromY);
-            ctx.lineTo(toX, toY);
-            ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY- headLen * Math.sin(angle - Math.PI / 6));
-            ctx.moveTo(toX, toY);
-            ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.restore();
-            ctx.restore();
-        }
         
         // velocity vector
         if (this.showVelocity){
@@ -525,29 +502,6 @@ class OrbitSimulation {
         ctx.rotate(this.orbit.argumentOfPeriapsis);
         ctx.drawImage(satImg, -this.satLength/2, -this.satLength/2, this.satLength, this.satLength);
         ctx.restore();
-
-        // draw vector: line and a arrow head
-        function drawVector(fromX, fromY, toX, toY, argumentOfPeriapsis, earthPos, color) {
-            ctx.save();
-            ctx.translate(canvas.width/2, canvas.height/2);
-            ctx.translate(...earthPos);
-            ctx.rotate(-argumentOfPeriapsis);
-            let headLen = 10;
-            let dx = toX - fromX;
-            let dy = toY - fromY;
-            let angle = Math.atan2(dy, dx);
-            ctx.beginPath();
-            ctx.strokeStyle = color;
-            ctx.moveTo(fromX, fromY);
-            ctx.lineTo(toX, toY);
-            ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY- headLen * Math.sin(angle - Math.PI / 6));
-            ctx.moveTo(toX, toY);
-            ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.restore();
-            ctx.restore();
-        }
         
         // velocity vector
         if (this.showVelocity){
@@ -652,6 +606,29 @@ class Orbit {
             this.startArg =  parseFloat(startArg);
         }
     }
+}
+
+// draw vector: line and a arrow head
+function drawVector(fromX, fromY, toX, toY, argumentOfPeriapsis, earthPos, color) {
+    ctx.save();
+    ctx.translate(canvas.width/2, canvas.height/2);
+    ctx.translate(...earthPos);
+    ctx.rotate(-argumentOfPeriapsis);
+    let headLen = 10;
+    let dx = toX - fromX;
+    let dy = toY - fromY;
+    let angle = Math.atan2(dy, dx);
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.moveTo(fromX, fromY);
+    ctx.lineTo(toX, toY);
+    ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY- headLen * Math.sin(angle - Math.PI / 6));
+    ctx.moveTo(toX, toY);
+    ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.restore();
+    ctx.restore();
 }
 
 // display distance scale
