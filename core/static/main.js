@@ -206,13 +206,17 @@ triggerChangeMaxEcc("maneuver-axis-2", "maneuver-ecc-2");
 const optToggle = document.getElementById("optimization-toggle");
 const timeLabel = document.getElementById("time-label");
 const fuelLabel = document.getElementById("fuel-label");
-optToggle.addEventListener("input", () => {
-    if (optToggle.value == 0){
+
+optToggle.addEventListener("mousedown", (event) => {
+    event.preventDefault();
+    if (optToggle.value == 1){
+        optToggle.value = 0;
         timeLabel.style.fontWeight = "bold";
         timeLabel.style.border = "1px solid black";
         fuelLabel.style.fontWeight = "normal";
         fuelLabel.style.border = "none";
     } else {
+        optToggle.value = 1;
         fuelLabel.style.fontWeight = "bold";
         fuelLabel.style.border = "1px solid black";
         timeLabel.style.fontWeight = "normal";
