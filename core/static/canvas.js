@@ -12,13 +12,8 @@ const EARTH_MASS = 5.972e24;
  * default: periapsis on the right
  * default: counter clockwise orbit
  * default: 1h/s
- * argument of periapsis is the angle between the line earth_center-periapsis and the x-axis
- */ 
-
-// tests
-// 30000, 0, 0 and 50000, 0.4, 0 and vice versa (intersection at the end_orbit periapsis)
-// 30000, 0, 0 and 20000, 0.5, 0 and vice versa (intersection at the end_orbit apoapsis)
-// 20000, 0.4, 0 and 10000, 0.2, Math.PI and vice versa
+ * argument of periapsis is the counterclockwise angle between the semi-major axis and the x-axis
+ */
 
 class ManeuverSimulation {
     constructor(orbits, burns, maxLength, earthPos) {
@@ -261,7 +256,7 @@ class ManeuverSimulation {
                 if (orbit.type != "end") {
                     // add the opacity at the end of of color according to currentOrbitId
                     drawVector(...(this.burnVectors[id].slice(0, -1)), 
-                        this.burnVectors[id][this.burnVectors[id].length - 1] + ((id == this.currentOrbitId) ? "1)" : (inactiveOpacity + ")")));
+                        this.burnVectors[id][this.burnVectors[id].length - 1] + ((id == this.currentOrbitId) ? "1)" : (inactiveOpacity + ")")), id == this.currentOrbitId ? 3 : 2);
                 }
             });
         }
@@ -280,14 +275,14 @@ class ManeuverSimulation {
         if (this.showVelocity){
             let [velocityStartX, velocityStartY] = this.satPosition();
             let [velocityEndX, velocityEndY] = this.velocity().map(num => num * this.maxVectorSize).map((num, id) => num + [velocityStartX, velocityStartY][id]);
-            drawVector(velocityStartX, velocityStartY, velocityEndX, velocityEndY, this.orbits[this.currentOrbitId].argumentOfPeriapsis, this.earthPos, "blue");
+            drawVector(velocityStartX, velocityStartY, velocityEndX, velocityEndY, this.orbits[this.currentOrbitId].argumentOfPeriapsis, this.earthPos, "blue", 3);
         }
 
         // acceleration vector
         if (this.showAcceleration){
             let [accelerationStartX, accelerationStartY] = this.satPosition();
             let [accelerationEndX, accelerationEndY] = this.acceleration().map(num => num * this.maxVectorSize).map((num, id) => num + [accelerationStartX, accelerationStartY][id]);
-            drawVector(accelerationStartX, accelerationStartY, accelerationEndX, accelerationEndY, this.orbits[this.currentOrbitId].argumentOfPeriapsis, this.earthPos, "red");
+            drawVector(accelerationStartX, accelerationStartY, accelerationEndX, accelerationEndY, this.orbits[this.currentOrbitId].argumentOfPeriapsis, this.earthPos, "red", 3);
         }
 
         displaySpeedScale(this.speedMultiplier);
@@ -507,14 +502,14 @@ class OrbitSimulation {
         if (this.showVelocity){
             let [velocityStartX, velocityStartY] = this.satPosition();
             let [velocityEndX, velocityEndY] = this.velocity().map(num => num * this.maxVectorSize).map((num, id) => num + [velocityStartX, velocityStartY][id]);
-            drawVector(velocityStartX, velocityStartY, velocityEndX, velocityEndY, this.orbit.argumentOfPeriapsis, this.earthPos, "blue");
+            drawVector(velocityStartX, velocityStartY, velocityEndX, velocityEndY, this.orbit.argumentOfPeriapsis, this.earthPos, "blue", 3);
         }
 
         // acceleration vector
         if (this.showAcceleration){
             let [accelerationStartX, accelerationStartY] = this.satPosition();
             let [accelerationEndX, accelerationEndY] = this.acceleration().map(num => num * this.maxVectorSize).map((num, id) => num + [accelerationStartX, accelerationStartY][id]);
-            drawVector(accelerationStartX, accelerationStartY, accelerationEndX, accelerationEndY, this.orbit.argumentOfPeriapsis, this.earthPos, "red");
+            drawVector(accelerationStartX, accelerationStartY, accelerationEndX, accelerationEndY, this.orbit.argumentOfPeriapsis, this.earthPos, "red", 3);
         }
 
         displaySpeedScale(this.speedMultiplier);
@@ -609,7 +604,7 @@ class Orbit {
 }
 
 // draw vector: line and a arrow head
-function drawVector(fromX, fromY, toX, toY, argumentOfPeriapsis, earthPos, color) {
+function drawVector(fromX, fromY, toX, toY, argumentOfPeriapsis, earthPos, color, lineWidth) {
     ctx.save();
     ctx.translate(canvas.width/2, canvas.height/2);
     ctx.translate(...earthPos);
@@ -625,7 +620,7 @@ function drawVector(fromX, fromY, toX, toY, argumentOfPeriapsis, earthPos, color
     ctx.moveTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY- headLen * Math.sin(angle - Math.PI / 6));
     ctx.lineTo(toX, toY);
     ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
-    ctx.lineWidth = 3;
+    ctx.lineWidth = lineWidth;
     ctx.stroke();
     ctx.restore();
 }

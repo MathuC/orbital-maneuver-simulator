@@ -224,6 +224,23 @@ optToggle.addEventListener("mousedown", (event) => {
     }
 });
 
+// autofill orbit form from maneuver form
+document.getElementById("initial-orbit-title").addEventListener("click", () => {
+    autofillOrbitForm(1);
+})
+
+document.getElementById("final-orbit-title").addEventListener("click", () => {
+    autofillOrbitForm(2);
+})
+
+function autofillOrbitForm(id) {
+    const attributes = ["axis", "ecc", "arg"];
+    attributes.forEach((attr) => {
+        document.getElementById("orbit-" + attr + "-value").value = document.getElementById("maneuver-" + attr + "-" + id + "-value").value;
+        document.getElementById("orbit-" + attr + "-slider").value = document.getElementById("maneuver-" + attr + "-" + id + "-slider").value;
+    });
+    document.getElementById("orbit-tab-btn").click();
+}
 
 // info
 
@@ -486,6 +503,8 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
         if (orbit.type != "end") {
             info.innerHTML+= '<br>';
             createTitle("Burn " + (id + 1), orbitTypeColorMap[orbit.type]);
+            createLine("Δv", Math.abs(burns[id]).toLocaleString() + " m/s");
+            createLine("Direction", burns[id] > 0? "Prograde":"Retrograde");
             createLine("Orbit", orbitTypeTitleMap[orbit.type]);
             let theta = orbit["endArg"] % (2 * Math.PI);
             let location = Math.round((theta/(2 * Math.PI)) * 360) + "°";
@@ -495,8 +514,6 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
                 location += " (apoapsis)"
             }
             createLine("True Anomaly", location);
-            createLine("Δv", Math.abs(burns[id]).toLocaleString() + " m/s");
-            createLine("Direction", burns[id] > 0? "Prograde":"Retrograde");
             createLine("Thrust Mode", "Impulse");
             info.innerHTML+= '<br>';
         }   

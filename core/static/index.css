@@ -124,6 +124,10 @@ body {
     font-weight: bold;
 }
 
+#initial-orbit-title, #final-orbit-title {
+    cursor: pointer;
+}
+
 #initial-orbit-container {
     margin-bottom: 15px;
 }
@@ -170,9 +174,7 @@ body {
     font-size: 14px;
 }
 
-#orbit-axis-value, #orbit-ecc-value, #orbit-arg-value, #maneuver-axis-1-value,
-#maneuver-ecc-1-value, #maneuver-arg-1-value, #maneuver-axis-2-value,
-#maneuver-ecc-2-value, #maneuver-arg-2-value {
+.form-value {
     width: 100px;
 }
 
