@@ -211,16 +211,16 @@ optToggle.addEventListener("mousedown", (event) => {
     event.preventDefault();
     if (optToggle.value == 1){
         optToggle.value = 0;
-        timeLabel.style.backgroundColor = "black";
-        timeLabel.style.color = "white";
-        fuelLabel.style.backgroundColor = "white";
-        fuelLabel.style.color = "black";
+        timeLabel.style.fontWeight = "bold";
+        timeLabel.style.border = "2px solid black";
+        fuelLabel.style.fontWeight = "normal";
+        fuelLabel.style.border = "none";
     } else {
         optToggle.value = 1;
-        fuelLabel.style.backgroundColor = "black";
-        fuelLabel.style.color = "white";
-        timeLabel.style.backgroundColor = "white";
-        timeLabel.style.color = "black";
+        fuelLabel.style.fontWeight = "bold";
+        fuelLabel.style.border = "2px solid black";
+        timeLabel.style.fontWeight = "normal";
+        timeLabel.style.border = "none";
     }
 });
 

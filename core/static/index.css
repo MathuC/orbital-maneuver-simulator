@@ -153,21 +153,16 @@ body {
 #save-label {
     padding: 2px;
     font-weight: bold;
-    background-color: black;
-    color: white;
 }
 
 #time-label {
     padding: 2px;
-    font-weight: bold;
-    color: black;
 }
 
 #fuel-label {
     padding: 2px;
     font-weight: bold;
-    background-color: black;
-    color: white;
+    border: 2px solid black;
 }
 
 #maneuver-submit-btn {
