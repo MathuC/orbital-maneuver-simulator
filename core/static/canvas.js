@@ -622,12 +622,11 @@ function drawVector(fromX, fromY, toX, toY, argumentOfPeriapsis, earthPos, color
     ctx.strokeStyle = color;
     ctx.moveTo(fromX, fromY);
     ctx.lineTo(toX, toY);
-    ctx.lineTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY- headLen * Math.sin(angle - Math.PI / 6));
-    ctx.moveTo(toX, toY);
+    ctx.moveTo(toX - headLen * Math.cos(angle - Math.PI / 6), toY- headLen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(toX, toY);
     ctx.lineTo(toX - headLen * Math.cos(angle + Math.PI / 6), toY - headLen * Math.sin(angle + Math.PI / 6));
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.stroke();
-    ctx.restore();
     ctx.restore();
 }
 
