@@ -378,16 +378,16 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
             total_delta_t = compute_total_delta_t(orbits)
             strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v, 'total_delta_t': total_delta_t})
 
-    # tuple for lambda function since if the first criteria is equal, the elements are sorted with the second criterion
     sortingKeys = ['total_delta_v', 'total_delta_t'] if optimization else ['total_delta_t', 'total_delta_v']
-    optFunction = lambda x : (x[1][sortingKeys[0]], x[1][sortingKeys[1]]) 
+    # if total delta v and total delta t are equal, choose the one with the least transfer orbits 
+    optFunction = lambda x : (x[1][sortingKeys[0]], x[1][sortingKeys[1]], len(x[1]['orbits'])) 
     strat_id, best_strat = min(enumerate(strat_outputs), key = optFunction)
     total_delta_v_list = [output['total_delta_v'] for output in strat_outputs]
     total_delta_t_list = [output['total_delta_t'] for output in strat_outputs]
 
     # test strategies
-    #test_id = 3
-    #strat_id, best_strat = test_id, strat_outputs[test_id]
+    test_id = 3
+    strat_id, best_strat = test_id, strat_outputs[test_id]
 
     max_length, earth_pos = max_length_earth_pos(best_strat['orbits']).values()
     return {"orbits": best_strat['orbits'], "burns": best_strat['burns'], "max_length": max_length, 
