@@ -96,7 +96,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
     end_orbit["ecc"] = float(end_orbit["ecc"])
     end_orbit["arg"] = math.radians(int(end_orbit["arg"]))
 
-    optimization = int(optimization) # 1 is fuel, 0 is time
+    optimization = int(optimization) # 1 is to save fuel, 0 is to save time
 
     def periapsis(orbit):
         return orbit["axis"] * (1 - orbit["ecc"])
@@ -118,51 +118,61 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
     
     def compute_total_delta_t(orbits):
         total_delta_t = 0
-        for orbit in orbits[1:-1]:
+        for orbit in orbits[0:-1]:
             angle_in_orbit = orbit["end_arg"] - orbit["start_arg"]
             total_delta_t += angle_in_orbit * math.sqrt(((orbit["axis"] * 1000) ** 3)/(G * EARTH_MASS))
         return round(total_delta_t)
 
-    # No end_arg can be equal to 0 since it will skip the orbit entirely so make it equal to 2 * math.pi
-    # 4 Strategies. Choose the one that gives you the smallest total delta v
+    # No end_arg can be equal to 0 since it will skip the orbit entirely so it has to be 2 * math.pi
+    # 8 Strategies. Choose the one that gives you the smallest total delta v or smallest total delta t
     # Strategy 1: Start with apoapsis := apoapsis
     # Strategy 2: Start with periapsis := apoapsis
     # Strategy 3: Start with periapsis := periapsis
-    # Strategy 4: Start with apoapsis := periapsis   
+    # Strategy 4: Start with apoapsis := periapsis
+    # Strategy 5: Start by circularizing the orbit at the current periapsis; Strategy 1 (1 or 2 yields the same result since orbits[-1] will be circular)
+    # Strategy 6: Start by circularizing the orbit at the current apoapsis; Strategy 1
+    # Strategy 7: Start by circularizing the orbit at the current periapsis; Strategy 3 (3 or 4 yields the same result)
+    # Strategy 8: Start by circularizing the orbit at the current apoapsis; Strategy 3
+
 
     strat_outputs = []
 
-    for strat in range(4):
+    for strat in range(8):
         orbits = [start_orbit.copy()]
         orbits[0]["start_arg"] = 0
         burns = []
 
         # STEP 0
+        if (orbits[-1]['ecc'] != 0):
+            if (strat == 4 or strat == 6):
+                pass
+            elif (strat == 5 or strat == 7):
+                pass
 
         # STEP 1
-        if ((strat == 0 and (apoapsis(orbits[-1]) != apoapsis(end_orbit))) or 
-            (strat == 1 and (periapsis(orbits[-1]) != apoapsis(end_orbit))) or
-            (strat == 2 and (periapsis(orbits[-1]) != periapsis(end_orbit))) or 
-            (strat == 3 and (apoapsis(orbits[-1]) != periapsis(end_orbit)))):
+        if (((strat == 0 or strat == 4 or strat == 5) and (round(apoapsis(orbits[-1])) != round(apoapsis(end_orbit)))) or 
+            (strat == 1 and (round(periapsis(orbits[-1])) != round(apoapsis(end_orbit)))) or
+            ((strat == 2 or strat == 6 or strat == 7) and (round(periapsis(orbits[-1])) != round(periapsis(end_orbit)))) or 
+            (strat == 3 and (round(apoapsis(orbits[-1])) != round(periapsis(end_orbit))))):
         
             # Reach end_orbit's apoapsis
-            if ((strat == 0 and (apoapsis(orbits[-1]) != apoapsis(end_orbit))) or (strat == 1 and (periapsis(orbits[-1]) != apoapsis(end_orbit)))):
+            if (((strat == 0 or strat == 4 or strat == 5) and (round(apoapsis(orbits[-1])) != round(apoapsis(end_orbit)))) or (strat == 1 and round((periapsis(orbits[-1])) != round(apoapsis(end_orbit))))):
                 newOrbit = {}
 
                 # if orbits[-1] is a circle, then do the rotation of the orbit and the same time of this burn, same for strat 1 and 2
-                if (periapsis(orbits[-1]) == apoapsis(orbits[-1])):
+                if (round(periapsis(orbits[-1])) == round(apoapsis(orbits[-1]))):
                     tempArg = normalize_angle(end_orbit["arg"] - orbits[-1]['arg'])
                     orbits[-1]["end_arg"] = tempArg if tempArg != 0 else 2 * math.pi # you don't want the end arg of an orbit to be 0 
-                    if (periapsis(orbits[-1]) <= apoapsis(end_orbit)): # newOrbit is a circle or newOrbit's periapsis and apoapsis stay on the same sides
+                    if (periapsis(orbits[-1]) < apoapsis(end_orbit)): # newOrbit can't be a circle, that's why not <=
                         newOrbit["arg"] = end_orbit["arg"]
                     else: # newOrbit's periapsis and apoapsis switch sides
                         newOrbit["arg"] = normalize_angle(end_orbit["arg"] + math.pi)
                 
                 # STRATEGY 1: apoapsis := apoapsis
-                if (strat == 0 and (apoapsis(orbits[-1]) != apoapsis(end_orbit))):
+                if ((strat == 0 or strat == 4 or strat == 5) and (apoapsis(orbits[-1]) != apoapsis(end_orbit))):
                     newOrbit["axis"] = axis(periapsis(orbits[-1]), apoapsis(end_orbit)) 
 
-                    if (periapsis(orbits[-1]) != apoapsis(orbits[-1])):
+                    if (round(periapsis(orbits[-1])) != round(apoapsis(orbits[-1]))):
                         orbits[-1]["end_arg"] = 2 * math.pi
                         if (periapsis(orbits[-1]) <= apoapsis(end_orbit)): # newOrbit is a circle or newOrbit's periapsis and apoapsis stay on the same sides
                             newOrbit["arg"] = orbits[-1]["arg"]
@@ -180,17 +190,17 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
                     v2 = velocity(periapsis(orbits[-1]), newOrbit["axis"])
                 
                 # STRATEGY 2: periapsis := apoapsis
-                elif (strat == 1 and (periapsis(orbits[-1]) != apoapsis(end_orbit))):
+                elif (strat == 1 and (round(periapsis(orbits[-1])) != round(apoapsis(end_orbit)))):
                     newOrbit["axis"] = axis(apoapsis(orbits[-1]), apoapsis(end_orbit)) 
                     
-                    if (periapsis(orbits[-1]) != apoapsis(orbits[-1])):
+                    if (round(periapsis(orbits[-1])) != round(apoapsis(orbits[-1]))):
                         orbits[-1]["end_arg"] = math.pi
                         if (apoapsis(orbits[-1]) < apoapsis(end_orbit)): 
                             newOrbit["arg"] = normalize_angle(orbits[-1]["arg"] + math.pi) 
                         else: 
                             newOrbit["arg"] = orbits[-1]["arg"]
 
-                    if (apoapsis(orbits[-1]) < apoapsis(end_orbit)):
+                    if (apoapsis(orbits[-1]) < apoapsis(end_orbit)): # < and not <= because if circle, it should start by default at startArg of 0
                         newOrbit["ecc"] = eccentricity(apoapsis(orbits[-1]), apoapsis(end_orbit))
                         newOrbit["start_arg"] = 0
                     else:
@@ -201,24 +211,24 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
                     v2 = velocity(apoapsis(orbits[-1]), newOrbit["axis"])
             
             # Reach end_orbit's periapsis
-            elif ((strat == 2 and (periapsis(orbits[-1]) != periapsis(end_orbit))) or (strat == 3 and (apoapsis(orbits[-1]) != periapsis(end_orbit)))):
+            elif (((strat == 2 or strat == 6 or strat == 7) and (round(periapsis(orbits[-1])) != round(periapsis(end_orbit)))) or (strat == 3 and (round(apoapsis(orbits[-1])) != round(periapsis(end_orbit))))):
                 newOrbit = {}
 
-                if (periapsis(orbits[-1]) == apoapsis(orbits[-1])):
+                if (round(periapsis(orbits[-1])) == round(apoapsis(orbits[-1]))):
                     tempArg = normalize_angle(end_orbit["arg"] - orbits[-1]['arg'] + math.pi)
                     orbits[-1]["end_arg"] = tempArg if tempArg != 0 else 2 * math.pi 
-                    if (apoapsis(orbits[-1]) <= periapsis(end_orbit)): 
+                    if (apoapsis(orbits[-1]) < periapsis(end_orbit)): # newOrbit can't be a circle, that's why not <=
                         newOrbit["arg"] = normalize_angle(end_orbit["arg"] + math.pi)
                     else: 
                         newOrbit["arg"] = end_orbit["arg"]
 
                 # STRATEGY 3: periapsis := periapsis
-                if (strat == 2 and (periapsis(orbits[-1]) != periapsis(end_orbit))): 
+                if ((strat == 2 or strat == 6 or strat == 7) and (round(periapsis(orbits[-1])) != round(periapsis(end_orbit)))): 
                     newOrbit["axis"] = axis(apoapsis(orbits[-1]), periapsis(end_orbit))
                     
-                    if (periapsis(orbits[-1]) != apoapsis(orbits[-1])):
+                    if (round(periapsis(orbits[-1])) != round(apoapsis(orbits[-1]))):
                         orbits[-1]["end_arg"] = math.pi
-                        if (apoapsis(orbits[-1]) < periapsis(end_orbit)): 
+                        if (apoapsis(orbits[-1]) < periapsis(end_orbit)):
                             newOrbit["arg"] = normalize_angle(orbits[-1]["arg"] + math.pi)
                         else: 
                             newOrbit["arg"] = orbits[-1]["arg"]
@@ -234,10 +244,10 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
                     v2 = velocity(apoapsis(orbits[-1]), newOrbit["axis"])
                 
                 # STRATEGY 4: apoapsis := periapsis
-                elif (strat == 3 and (apoapsis(orbits[-1]) != periapsis(end_orbit))):
+                elif (strat == 3 and (round(apoapsis(orbits[-1])) != round(periapsis(end_orbit)))):
                     newOrbit["axis"] = axis(periapsis(orbits[-1]), periapsis(end_orbit))
                     
-                    if (periapsis(orbits[-1]) != apoapsis(orbits[-1])):
+                    if (round(periapsis(orbits[-1])) != round(apoapsis(orbits[-1]))):
                         orbits[-1]["end_arg"] = 2 * math.pi
                         if (periapsis(orbits[-1]) <= periapsis(end_orbit)): 
                             newOrbit["arg"] = orbits[-1]["arg"]
@@ -265,13 +275,13 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
 
         # STEP 2: Make the orbit circular if you need to change arg later
         # if end_orbit is a circle, you should skip this step since it will not give the correct start and end arg, unlike STEP 3 
-        if (strat == 0 or strat == 1):
+        if (strat == 0 or strat == 1 or strat == 4 or strat == 5):
             step2 = {
                 "correct_apsis": apoapsis(end_orbit),
                 "angle_offset_1": math.pi,
                 "angle_offset_2": 0
             }
-        elif (strat == 2 or strat == 3):
+        elif (strat == 2 or strat == 3 or strat == 6 or strat == 7):
             step2 = {
                 "correct_apsis": periapsis(end_orbit),
                 "angle_offset_1": 0,
@@ -302,12 +312,12 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
 
 
         # STEP 3: Reach end_orbit's remaining correct apsis
-        if (strat == 0 or strat == 1):
+        if (strat == 0 or strat == 1 or strat == 4 or strat == 5):
             step3 = {
                 "correct_apsis": apoapsis(end_orbit),
                 "start_arg": math.pi
             }
-        elif (strat == 2 or strat == 3):
+        elif (strat == 2 or strat == 3 or strat == 6 or strat == 7):
             step3 = {
                 "correct_apsis": periapsis(end_orbit),
                 "start_arg": 0
