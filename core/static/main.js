@@ -211,16 +211,16 @@ optToggle.addEventListener("mousedown", (event) => {
     event.preventDefault();
     if (optToggle.value == 1){
         optToggle.value = 0;
-        timeLabel.style.fontWeight = "bold";
-        timeLabel.style.border = "1px solid black";
-        fuelLabel.style.fontWeight = "normal";
-        fuelLabel.style.border = "none";
+        timeLabel.style.backgroundColor = "black";
+        timeLabel.style.color = "white";
+        fuelLabel.style.backgroundColor = "white";
+        fuelLabel.style.color = "black";
     } else {
         optToggle.value = 1;
-        fuelLabel.style.fontWeight = "bold";
-        fuelLabel.style.border = "1px solid black";
-        timeLabel.style.fontWeight = "normal";
-        timeLabel.style.border = "none";
+        fuelLabel.style.backgroundColor = "black";
+        fuelLabel.style.color = "white";
+        timeLabel.style.backgroundColor = "white";
+        timeLabel.style.color = "black";
     }
 });
 
@@ -449,9 +449,9 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
         }
     });
     info.innerHTML += '<br>';
-    createTitle("Strategy " + (stratId+1) + ": The Most " + (optimization ? "Fuel" : "Time") + "-Efficient Option" , null);
+    createTitle("Strategy " + (stratId+1) + ": The Most " + (optimization ? "Fuel" : "Time") + "-Efficient Maneuver" , null);
     
-    stratAlgHTML = ""
+    stratAlgHTML = "";
     stratAlgHTML += '<div id="strat-tooltip-hover-container">';
     stratAlgHTML += '<b>' + "Strategy " + (stratId+1) + " Algorithm" + ': </b>' + stratAlgs[stratId] + '<br>';
     stratAlgHTML += '<span id="strat-tooltip">';
@@ -466,7 +466,7 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
     stratAlgHTML += '</div>';
     info.innerHTML += stratAlgHTML;
 
-    createLine("Optimization", "Save the most " + (optimization ? "fuel" : "time"));
+    createLine("Optimization Objective", "Save the most " + (optimization ? "fuel" : "time"));
     createLine("Total Δv", totalDeltaVList[stratId].toLocaleString() + " m/s (proportional to amount of fuel used)");
     createLine("Total Δt", formatTime(totalDeltaTList[stratId]) + " (time spent in the transfer orbit(s))");
     createLine("Number of Burns", burns.length);

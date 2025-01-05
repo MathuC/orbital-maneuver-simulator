@@ -53,7 +53,7 @@
                     <div id="maneuver-form-container">
                         <form id="maneuver-form" method="post">
                             {% csrf_token %} <!-- Django CSRF token -->
-                            <div id="initial-orbit-container">
+                            <div class="form-part-container">
                                 <span class="form-title">Initial orbit</span><br>
                                 <label>Semi-major axis (km)</label><br>
                                 <input type="range" id="maneuver-axis-1-slider" min="6531" max="50000" step="1" value="15168">
@@ -67,7 +67,7 @@
                                 <input type="range" id="maneuver-arg-1-slider" min="0" max="359" step="1" value="39">
                                 <input id="maneuver-arg-1-value" name="maneuver-arg-1-value" value="39"></input>
                             </div>
-                            <div id="final-orbit-container">
+                            <div class="form-part-container">
                                 <span class="form-title">Final orbit</span><br>
                                 <label>Semi-major axis (km)</label><br>
                                 <input type="range" id="maneuver-axis-2-slider" min="6531" max="50000" step="1" value="9660">
@@ -81,9 +81,9 @@
                                 <input type="range" id="maneuver-arg-2-slider" min="0" max="359" step="1" value="137">
                                 <input id="maneuver-arg-2-value" name="maneuver-arg-2-value" value="137"></input>
                             </div>
-                            <div id="optimization-container">
+                            <div id="form-part-container">
                                 <span class="form-title">Optimization</span><br>
-                                <label id="save-label">Save: </label>
+                                <span id="save-label">Save</span>
                                 <span id="time-label">Time</span>
                                 <input type="range" id="optimization-toggle" name="optimization-toggle" min="0" max="1" step="1" value="1">
                                 <span id="fuel-label">Fuel</span>

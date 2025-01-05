@@ -132,20 +132,38 @@ body {
     margin-bottom: 20px;
 }
 
+#optimization-container {
+    margin-bottom: 20px;
+}
+
+.form-part-container {
+    margin-bottom: 13px;
+}
+
 #optimization-toggle {
     position: relative;
     top: 4px;
     width: 35px;
 }
 
+#save-label {
+    padding: 2px;
+    font-weight: bold;
+    background-color: black;
+    color: white;
+}
+
 #time-label {
     padding: 2px;
+    font-weight: bold;
+    color: black;
 }
 
 #fuel-label {
     padding: 2px;
     font-weight: bold;
-    border: 1px solid black;
+    background-color: black;
+    color: white;
 }
 
 #maneuver-submit-btn {
