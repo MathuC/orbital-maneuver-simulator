@@ -473,7 +473,7 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
     stratAlgHTML += '<b>' + "Strategy " + (stratId+1) + " Algorithm" + ': </b>' + stratAlgs[stratId] + '<br>';
     stratAlgHTML += '<span id="strat-tooltip">';
     stratAlgs.forEach((alg, id) => {
-        stratAlgHTML += '&bull;<b> Strategy ' + (id + 1) +': </b>';
+        stratAlgHTML += '<b> Strategy ' + (id + 1) +': </b>';
         stratAlgHTML += alg;
         if (id != stratAlgs.length - 1) {
             stratAlgHTML += '<br>';
