@@ -226,11 +226,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
                 burns.append(round((v2-v1)))
                 orbits.append(newOrbit)
 
-                if (isEqual(orbits[-1], end_orbit)):
-                    total_delta_v = sum(map(abs, burns))
-                    total_delta_t = compute_total_delta_t(orbits)
-                    strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v, 'total_delta_t': total_delta_t})
-                    continue
+                # It is impossible that orbits[-1] is equal to end_orbit, so no need for isEqual check
 
             # STEP 3: Reach end_orbit's periapsis
             newOrbit = end_orbit.copy()
@@ -350,8 +346,6 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
                 v2 = velocity(newOrbit["axis"], newOrbit["axis"])
                 burns.append(round((v2-v1)))
                 orbits.append(newOrbit)
-
-                # It is impossible that orbits[-1] is equal to end_orbit, so no need for isEqual check
 
             # STEP 3: Reach end_orbit's apoapsis
             newOrbit = end_orbit.copy()
