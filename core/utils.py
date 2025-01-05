@@ -354,7 +354,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
     total_delta_t_list = [output['total_delta_t'] for output in strat_outputs]
 
     # test strategies
-    #test_id = 2
+    #test_id =
     #strat_id, best_strat = test_id, strat_outputs[test_id]
 
     max_length, earth_pos = max_length_earth_pos(best_strat['orbits']).values()
