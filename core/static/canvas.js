@@ -83,7 +83,7 @@ class ManeuverSimulation {
             let E = this.meanAnomalie(); // initial guess for E
             let E_next;
             // 8 iterations reduce max error to under 1e-15 for the highest eccentricity possible (0.869)
-            for (let i = 0; i < 8; i++) {
+            for (let i = 0; i < 10; i++) {
                 E_next = E - f(E)/df_dE(E);
                 E = E_next;
             }
@@ -381,7 +381,7 @@ class OrbitSimulation {
             let E = this.meanAnomalie(); // initial guess for E
             let E_next;
             // 8 iterations reduce max error to under 1e-15 for the highest eccentricity possible (0.869)
-            for (let i = 0; i < 8; i++) {
+            for (let i = 0; i < 10; i++) {
                 E_next = E - f(E)/df_dE(E);
                 E = E_next;
             }
