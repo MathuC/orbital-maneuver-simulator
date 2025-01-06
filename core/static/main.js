@@ -486,9 +486,9 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
     stratAlgHTML += '</div>';
     info.innerHTML += stratAlgHTML;
 
-    createLine("Optimization Objective", "Minimize " + (optimization ? "fuel" : "time"));
-    createLine("Total Δv", totalDeltaVList[stratId].toLocaleString() + " m/s (proportional to amount of fuel used)");
-    createLine("Total Δt", formatTime(totalDeltaTList[stratId]) + " (time spent in transfer orbits)");
+    createLine("Optimization Objective", "Minimize " + (optimization ? "fuel (proportional to total Δv)" : "time spent in transfer orbits"));
+    createLine("Total Δv", totalDeltaVList[stratId].toLocaleString() + " m/s");
+    createLine("Total Δt", formatTime(totalDeltaTList[stratId]));
     createLine("Number of Burns", burns.length);
     createLine("Number of Transfer Orbits", burns.length - 1);
     info.innerHTML += '<br>';
