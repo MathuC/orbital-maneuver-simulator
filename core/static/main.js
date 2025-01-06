@@ -207,7 +207,10 @@ const optToggle = document.getElementById("optimization-toggle");
 const timeLabel = document.getElementById("time-label");
 const fuelLabel = document.getElementById("fuel-label");
 
-optToggle.addEventListener("mousedown", (event) => {
+optToggle.addEventListener("mousedown", optToggleHandleEvent);
+optToggle.addEventListener("touchstart", optToggleHandleEvent);
+
+function optToggleHandleEvent(event) {
     event.preventDefault();
     if (optToggle.value == 1){
         optToggle.value = 0;
@@ -222,7 +225,7 @@ optToggle.addEventListener("mousedown", (event) => {
         timeLabel.style.fontWeight = "normal";
         timeLabel.style.border = "none";
     }
-});
+}
 
 // autofill orbit form from maneuver form
 document.getElementById("initial-orbit-title").addEventListener("click", () => {
