@@ -331,7 +331,7 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
     velocityChart = new Chart(velocityChartCtx, {
         type: 'bar',
         data: {
-          labels: ['1', '2', '3', '4'],
+          labels: ['1', '2', '3', '4', '5', '6', '7', '8'],
           datasets: [{
             label: 'Total Δv',
             data: totalDeltaVList,
@@ -400,7 +400,7 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
     timeChart = new Chart(timeChartCtx, {
         type: 'bar',
         data: {
-          labels: ['1', '2', '3', '4'],
+          labels: ['1', '2', '3', '4', '5', '6', '7', '8'],
           datasets: [{
             label: 'Total Δt',
             data: totalDeltaTList,
@@ -483,9 +483,9 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
     stratAlgHTML += '</div>';
     info.innerHTML += stratAlgHTML;
 
-    createLine("Optimization Objective", "Save the most " + (optimization ? "fuel" : "time"));
+    createLine("Optimization Objective", "Minimize " + (optimization ? "fuel" : "time"));
     createLine("Total Δv", totalDeltaVList[stratId].toLocaleString() + " m/s (proportional to amount of fuel used)");
-    createLine("Total Δt", formatTime(totalDeltaTList[stratId]) + " (time spent in the transfer orbit(s))");
+    createLine("Total Δt", formatTime(totalDeltaTList[stratId]) + " (time spent in initial and transfer orbits)");
     createLine("Number of Burns", burns.length);
     createLine("Number of Transfer Orbits", burns.length - 1);
     info.innerHTML += '<br>';
