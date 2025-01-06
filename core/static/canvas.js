@@ -662,5 +662,5 @@ function displayTotalTime(totalTime) {
     ctx.font = "16px Courier New";
     ctx.textAlign = "right";
     ctx.fillStyle = "white";
-    ctx.fillText("Time: " + Math.floor(totalTime/100) + " h", totalTimeX, totalTimeY);
+    ctx.fillText("Time: " + Math.floor(totalTime/100) + " h", totalTimeX, totalTimeY); // floor and not round
 }

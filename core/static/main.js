@@ -331,7 +331,7 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
     velocityChart = new Chart(velocityChartCtx, {
         type: 'bar',
         data: {
-          labels: ['1', '2', '3', '4'],
+          labels: ['1', '2', '3', '4', '5', '6', '7', '8'],
           datasets: [{
             label: 'Total Δv',
             data: totalDeltaVList,
@@ -400,7 +400,7 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
     timeChart = new Chart(timeChartCtx, {
         type: 'bar',
         data: {
-          labels: ['1', '2', '3', '4'],
+          labels: ['1', '2', '3', '4', '5', '6', '7', '8'],
           datasets: [{
             label: 'Total Δt',
             data: totalDeltaTList,

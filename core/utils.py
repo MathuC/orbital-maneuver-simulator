@@ -143,20 +143,49 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
         burns = []
 
         # STEP 0
-        if (orbits[-1]['ecc'] != 0):
+        if (orbits[-1]['ecc'] != 0 and (strat in [4, 5, 6, 7])):
             if (strat == 4 or strat == 6):
-                pass
+                step0 = {
+                    "apsis": periapsis(orbits[-1]),
+                    "end_arg": 2 * math.pi,
+                    "arg_offset": 0
+                }
             elif (strat == 5 or strat == 7):
-                pass
+                step0 = {
+                    "apsis": apoapsis(orbits[-1]),
+                    "end_arg": math.pi,
+                    "arg_offset": math.pi
+                }
+
+            newOrbit = {
+                "axis": step0['apsis'],
+                "ecc": 0,
+                "arg": normalize_angle(orbits[-1]['arg'] + step0['arg_offset']),
+                "start_arg" : 0
+            }
+            orbits[-1]['end_arg'] = step0['end_arg']
+
+            v1 = velocity(step0["apsis"], orbits[-1]["axis"])
+            v2 = velocity(step0["apsis"], newOrbit["axis"])
+
+            burns.append(round((v2-v1)))
+            orbits.append(newOrbit)
+    
+            if (isEqual(orbits[-1], end_orbit)):
+                total_delta_v = sum(map(abs, burns))
+                total_delta_t = compute_total_delta_t(orbits)
+                strat_outputs.append({'orbits':orbits, 'burns': burns, 'total_delta_v': total_delta_v, 'total_delta_t': total_delta_t})
+                continue
+                
 
         # STEP 1
-        if (((strat == 0 or strat == 4 or strat == 5) and (round(apoapsis(orbits[-1])) != round(apoapsis(end_orbit)))) or 
+        if (((strat in [0 ,4, 5]) and (round(apoapsis(orbits[-1])) != round(apoapsis(end_orbit)))) or 
             (strat == 1 and (round(periapsis(orbits[-1])) != round(apoapsis(end_orbit)))) or
-            ((strat == 2 or strat == 6 or strat == 7) and (round(periapsis(orbits[-1])) != round(periapsis(end_orbit)))) or 
+            ((strat in [2, 6, 7]) and (round(periapsis(orbits[-1])) != round(periapsis(end_orbit)))) or 
             (strat == 3 and (round(apoapsis(orbits[-1])) != round(periapsis(end_orbit))))):
         
             # Reach end_orbit's apoapsis
-            if (((strat == 0 or strat == 4 or strat == 5) and (round(apoapsis(orbits[-1])) != round(apoapsis(end_orbit)))) or (strat == 1 and round((periapsis(orbits[-1])) != round(apoapsis(end_orbit))))):
+            if (((strat in [0 ,4, 5]) and (round(apoapsis(orbits[-1])) != round(apoapsis(end_orbit)))) or (strat == 1 and round((periapsis(orbits[-1])) != round(apoapsis(end_orbit))))):
                 newOrbit = {}
 
                 # if orbits[-1] is a circle, then do the rotation of the orbit and the same time of this burn, same for strat 1 and 2
@@ -169,7 +198,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
                         newOrbit["arg"] = normalize_angle(end_orbit["arg"] + math.pi)
                 
                 # STRATEGY 1: apoapsis := apoapsis
-                if ((strat == 0 or strat == 4 or strat == 5) and (apoapsis(orbits[-1]) != apoapsis(end_orbit))):
+                if ((strat in [0 ,4, 5]) and (round(apoapsis(orbits[-1])) != round(apoapsis(end_orbit)))):
                     newOrbit["axis"] = axis(periapsis(orbits[-1]), apoapsis(end_orbit)) 
 
                     if (round(periapsis(orbits[-1])) != round(apoapsis(orbits[-1]))):
@@ -211,7 +240,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
                     v2 = velocity(apoapsis(orbits[-1]), newOrbit["axis"])
             
             # Reach end_orbit's periapsis
-            elif (((strat == 2 or strat == 6 or strat == 7) and (round(periapsis(orbits[-1])) != round(periapsis(end_orbit)))) or (strat == 3 and (round(apoapsis(orbits[-1])) != round(periapsis(end_orbit))))):
+            elif (((strat in [2, 6, 7]) and (round(periapsis(orbits[-1])) != round(periapsis(end_orbit)))) or (strat == 3 and (round(apoapsis(orbits[-1])) != round(periapsis(end_orbit))))):
                 newOrbit = {}
 
                 if (round(periapsis(orbits[-1])) == round(apoapsis(orbits[-1]))):
@@ -223,7 +252,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
                         newOrbit["arg"] = end_orbit["arg"]
 
                 # STRATEGY 3: periapsis := periapsis
-                if ((strat == 2 or strat == 6 or strat == 7) and (round(periapsis(orbits[-1])) != round(periapsis(end_orbit)))): 
+                if ((strat in [2, 6, 7]) and (round(periapsis(orbits[-1])) != round(periapsis(end_orbit)))): 
                     newOrbit["axis"] = axis(apoapsis(orbits[-1]), periapsis(end_orbit))
                     
                     if (round(periapsis(orbits[-1])) != round(apoapsis(orbits[-1]))):
@@ -364,8 +393,8 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
     total_delta_t_list = [output['total_delta_t'] for output in strat_outputs]
 
     # test strategies
-    #test_id =
-    #strat_id, best_strat = test_id, strat_outputs[test_id]
+    test_id = 6
+    strat_id, best_strat = test_id, strat_outputs[test_id]
 
     max_length, earth_pos = max_length_earth_pos(best_strat['orbits']).values()
     return {"orbits": best_strat['orbits'], "burns": best_strat['burns'], "max_length": max_length, 
