@@ -118,7 +118,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
     
     def compute_total_delta_t(orbits):
         total_delta_t = 0
-        for orbit in orbits[0:-1]:
+        for orbit in orbits[1:-1]: # time in transfer orbits only
             angle_in_orbit = orbit["end_arg"] - orbit["start_arg"]
             total_delta_t += angle_in_orbit * math.sqrt(((orbit["axis"] * 1000) ** 3)/(G * EARTH_MASS))
         return round(total_delta_t)
@@ -403,9 +403,11 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
     total_delta_v_list = [output['total_delta_v'] for output in strat_outputs]
     total_delta_t_list = [output['total_delta_t'] for output in strat_outputs]
 
+
     # test strategies
     # test_id = 5
     # strat_id, best_strat = test_id, strat_outputs[test_id]
+
 
     max_length, earth_pos = max_length_earth_pos(best_strat['orbits']).values()
     return {"orbits": best_strat['orbits'], "burns": best_strat['burns'], "max_length": max_length, 
