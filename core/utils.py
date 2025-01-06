@@ -224,12 +224,12 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
                     
                     if (round(periapsis(orbits[-1])) != round(apoapsis(orbits[-1]))):
                         orbits[-1]["end_arg"] = math.pi
-                        if (apoapsis(orbits[-1]) < apoapsis(end_orbit)): 
+                        if (apoapsis(orbits[-1]) <= apoapsis(end_orbit)): 
                             newOrbit["arg"] = normalize_angle(orbits[-1]["arg"] + math.pi) 
                         else: 
                             newOrbit["arg"] = orbits[-1]["arg"]
 
-                    if (apoapsis(orbits[-1]) < apoapsis(end_orbit)): # < and not <= because if circle, it should start by default at startArg of 0
+                    if (apoapsis(orbits[-1]) <= apoapsis(end_orbit)):
                         newOrbit["ecc"] = eccentricity(apoapsis(orbits[-1]), apoapsis(end_orbit))
                         newOrbit["start_arg"] = 0
                     else:
@@ -257,12 +257,12 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
                     
                     if (round(periapsis(orbits[-1])) != round(apoapsis(orbits[-1]))):
                         orbits[-1]["end_arg"] = math.pi
-                        if (apoapsis(orbits[-1]) < periapsis(end_orbit)):
+                        if (apoapsis(orbits[-1]) <= periapsis(end_orbit)):
                             newOrbit["arg"] = normalize_angle(orbits[-1]["arg"] + math.pi)
                         else: 
                             newOrbit["arg"] = orbits[-1]["arg"]
 
-                    if (apoapsis(orbits[-1]) < periapsis(end_orbit)):
+                    if (apoapsis(orbits[-1]) <= periapsis(end_orbit)):
                         newOrbit["ecc"] = eccentricity(apoapsis(orbits[-1]), periapsis(end_orbit))
                         newOrbit["start_arg"] = 0
                     else:
