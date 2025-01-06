@@ -148,7 +148,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
         burns = []
 
         # STEP 0
-        if (orbits[-1]['ecc'] != 0 and (strat in [4, 5, 6, 7])):
+        if (orbits[-1]['ecc'] != 0 and end_orbit['ecc'] != 0 and (strat in [4, 5, 6, 7])):
             if (strat == 4 or strat == 6):
                 step0 = {
                     "apsis": periapsis(orbits[-1]),
@@ -316,14 +316,15 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
                 "angle_offset_1": math.pi,
                 "angle_offset_2": 0
             }
-        elif (strat in [2, 3, 6, 6]):
+        elif (strat in [2, 3, 6, 7]):
             step2 = {
                 "correct_apsis": periapsis(end_orbit),
                 "angle_offset_1": 0,
                 "angle_offset_2": math.pi
             }
 
-        if (not (round(periapsis(orbits[-1])) == round(step2["correct_apsis"]) and standardize_angle(normalize_angle(orbits[-1]["arg"] + step2["angle_offset_1"])) == standardize_angle(normalize_angle(end_orbit["arg"]))) and 
+        if (strat in [0, 1, 2, 3] and
+            not (round(periapsis(orbits[-1])) == round(step2["correct_apsis"]) and standardize_angle(normalize_angle(orbits[-1]["arg"] + step2["angle_offset_1"])) == standardize_angle(normalize_angle(end_orbit["arg"]))) and 
             not (round(apoapsis(orbits[-1])) == round(step2["correct_apsis"]) and standardize_angle(normalize_angle(orbits[-1]["arg"] + step2["angle_offset_2"])) == standardize_angle(normalize_angle(end_orbit["arg"]))) and 
             orbits[-1]["ecc"] != 0 and end_orbit["ecc"] != 0):
 
@@ -403,7 +404,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
     total_delta_t_list = [output['total_delta_t'] for output in strat_outputs]
 
     # test strategies
-    # test_id = 6
+    # test_id = 5
     # strat_id, best_strat = test_id, strat_outputs[test_id]
 
     max_length, earth_pos = max_length_earth_pos(best_strat['orbits']).values()
