@@ -122,6 +122,11 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
             angle_in_orbit = orbit["end_arg"] - orbit["start_arg"]
             total_delta_t += angle_in_orbit * math.sqrt(((orbit["axis"] * 1000) ** 3)/(G * EARTH_MASS))
         return round(total_delta_t)
+    
+    # fix in case normalize_angle makes end_arg be smaller than start_arg
+    def fixEndArg(orbit):
+        if (orbit['end_arg'] < orbit['start_arg']):
+            orbit['end_arg'] = orbit['end_arg'] + 2 * math.pi
 
     # No end_arg can be equal to 0 since it will skip the orbit entirely so it has to be 2 * math.pi
     # 8 Strategies. Choose the one that gives you the smallest total delta v or smallest total delta t
@@ -294,6 +299,7 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
                     v2 = velocity(periapsis(orbits[-1]), newOrbit["axis"])
 
             burns.append(round((v2-v1)))
+            fixEndArg(orbits[-1])
             orbits.append(newOrbit)
     
             if (isEqual(orbits[-1], end_orbit)):
@@ -304,13 +310,13 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
 
         # STEP 2: Make the orbit circular if you need to change arg later
         # if end_orbit is a circle, you should skip this step since it will not give the correct start and end arg, unlike STEP 3 
-        if (strat == 0 or strat == 1 or strat == 4 or strat == 5):
+        if (strat in [0, 1, 4, 5]):
             step2 = {
                 "correct_apsis": apoapsis(end_orbit),
                 "angle_offset_1": math.pi,
                 "angle_offset_2": 0
             }
-        elif (strat == 2 or strat == 3 or strat == 6 or strat == 7):
+        elif (strat in [2, 3, 6, 6]):
             step2 = {
                 "correct_apsis": periapsis(end_orbit),
                 "angle_offset_1": 0,
@@ -335,18 +341,20 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
 
             v1 = velocity(newOrbit["axis"], orbits[-1]["axis"])
             v2 = velocity(newOrbit["axis"], newOrbit["axis"]) # same r and axis because circular orbit
+            
             burns.append(round((v2-v1)))
+            fixEndArg(orbits[-1])
             orbits.append(newOrbit)
             # It is impossible that orbits[-1] is equal to end_orbit, so no need for isEqual check
 
 
         # STEP 3: Reach end_orbit's remaining correct apsis
-        if (strat == 0 or strat == 1 or strat == 4 or strat == 5):
+        if (strat in [0, 1, 4, 5]):
             step3 = {
                 "correct_apsis": apoapsis(end_orbit),
                 "start_arg": math.pi
             }
-        elif (strat == 2 or strat == 3 or strat == 6 or strat == 7):
+        elif (strat in [2, 3, 6, 7]):
             step3 = {
                 "correct_apsis": periapsis(end_orbit),
                 "start_arg": 0
@@ -376,7 +384,9 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
 
         v1 = velocity(step3["correct_apsis"], orbits[-1]["axis"])
         v2 = velocity(step3["correct_apsis"], end_orbit["axis"])
+        
         burns.append(round((v2-v1)))
+        fixEndArg(orbits[-1])
         orbits.append(newOrbit)
 
         total_delta_v = sum(map(abs, burns))
