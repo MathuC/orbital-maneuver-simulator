@@ -273,8 +273,29 @@ function createTitle(name, color) {
     '<div style="width:20px;height:20px;margin-left:10px;display:inline-block;background-color:'+color+'"></div><br>';
 }
 
+// info helper function
+function generateOrbitInfo(orbit) {
+    createLine("Shape", orbit.isCircular ? "Circular" : "Elliptical");
+    createLine("Semi-Major Axis", orbit.semiMajorAxis.toLocaleString() + " km");
+    if (!orbit.isCircular) {
+        createLine("Semi-Minor Axis", Math.round(orbit.semiMinorAxis).toLocaleString() + " km");
+        createLine("Eccentricity", orbit.e);
+        createLine("Periapsis", Math.round(orbit.periapsis).toLocaleString() + " km");
+        createLine("Apoapsis", Math.round(orbit.apoapsis).toLocaleString() + " km");
+        createLine("Focal Distance", Math.round(orbit.focalDistance).toLocaleString() + " km");
+    }
+    createLine("Argument of Periapsis", Math.round(orbit.argumentOfPeriapsis * 180/Math.PI) + "°");
+    if (!orbit.isCircular) {
+        createLine("Velocity at Periapsis", Math.round(orbit.vPeriapsis) + " m/s");
+        createLine("Velocity at Apoapsis", Math.round(orbit.vApoapsis) + " m/s");
+    } else {
+        createLine("Velocity", Math.round(orbit.vPeriapsis) + " m/s");
+    }
+    createLine("Orbital Period", formatTime(orbit.orbitalPeriod));
+}
+
 // orbit info
-function generateOrbitInfo(orbit) {  
+function updateOrbitInfo(orbit) {  
 
     info.innerHTML = "";
     if (typeof velocityChart !== "undefined") {
@@ -283,22 +304,15 @@ function generateOrbitInfo(orbit) {
     }
     velocityChartCtx.style.display='none';
     timeChartCtx.style.display='none';
-    
-    createLine("Semi-Major Axis", orbit.semiMajorAxis.toLocaleString() + " km");
-    createLine("Semi-Minor Axis", Math.round(orbit.semiMinorAxis).toLocaleString() + " km");
-    createLine("Eccentricity", orbit.e);
-    createLine("Periapsis", Math.round(orbit.periapsis).toLocaleString() + " km");
-    createLine("Apoapsis", Math.round(orbit.apoapsis).toLocaleString() + " km");
-    createLine("Focal Distance", Math.round(orbit.focalDistance).toLocaleString() + " km");
-    createLine("Argument of Periapsis", Math.round(orbit.argumentOfPeriapsis * 180/Math.PI) + "°");
-    createLine("Orbital Period", formatTime(orbit.orbitalPeriod));
+
+    generateOrbitInfo(orbit);
 
     // credit
     info.innerHTML += '<div id="credit" style=""> To see more of my projects, visit <a href="https://mathusan.net">mathusan.net</a></div>';
 }
 
 // maneuver info
-function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, stratId, optimization) {
+function updateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, stratId, optimization) {
 
     // chart.js makes min bar nearly invisible, this function is to make min bar more visible
     // since min bar is for the chosen strategy
@@ -495,14 +509,7 @@ function generateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, s
 
     orbits.forEach((orbit, id) => {
         createTitle(orbitTypeTitleMap[orbit.type], orbitTypeColorMap[orbit.type]);
-        createLine("Semi-Major Axis", orbit.semiMajorAxis.toLocaleString() + " km");
-        createLine("Semi-Minor Axis", Math.round(orbit.semiMinorAxis).toLocaleString() + " km");
-        createLine("Eccentricity", Math.round(orbit.e * 1000)/1000);
-        createLine("Periapsis", Math.round(orbit.periapsis).toLocaleString() + " km");
-        createLine("Apoapsis", Math.round(orbit.apoapsis).toLocaleString() + " km");
-        createLine("Focal Distance", Math.round(orbit.focalDistance).toLocaleString() + " km");
-        createLine("Argument of Periapsis", Math.round(orbit.argumentOfPeriapsis * 180/Math.PI) + "°");
-        createLine("Orbital Period", formatTime(orbit.orbitalPeriod));
+        generateOrbitInfo(orbit);
         if (orbit.type != "end") {
             info.innerHTML+= '<br>';
             createTitle("Burn " + (id + 1), orbitTypeColorMap[orbit.type]);

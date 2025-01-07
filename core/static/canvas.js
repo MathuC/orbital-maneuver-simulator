@@ -92,7 +92,7 @@ class ManeuverSimulation {
 
         this.trueAnomalie = function () {
             let orbit = this.orbits[this.currentOrbitId];
-            if (orbit.orbitIsCircular) {
+            if (orbit.isCircular) {
                 return this.meanAnomalie(); // for circular orbits, true anomalie is the same as mean anomalie
             } else {
                 let theta = 2 * Math.atan2(Math.sqrt(1 + orbit.e) * Math.tan(this.eccentricAnomalie()/2), Math.sqrt(1 - orbit.e));
@@ -389,7 +389,7 @@ class OrbitSimulation {
         }
 
         this.trueAnomalie = function () {
-            if (orbit.orbitIsCircular) {
+            if (orbit.isCircular) {
                 return this.meanAnomalie(); // for circular orbits, true anomalie is the same as mean anomalie
             } else {
                 let theta = 2 * Math.atan2(Math.sqrt(1 + orbit.e) * Math.tan(this.eccentricAnomalie()/2), Math.sqrt(1 - orbit.e));
@@ -592,7 +592,7 @@ class Orbit {
         this.apoapsis =  this.semiMajorAxis * (1 + this.e);
         this.focalDistance = (this.semiMajorAxis ** 2 - this.semiMinorAxis ** 2) ** 0.5;
         this.orbitalPeriod = 2 * Math.PI * ((((this.semiMajorAxis * 1000) ** 3)/(G * EARTH_MASS))) ** 0.5;
-        this.orbitIsCircular = this.e == 0;
+        this.isCircular = this.e == 0;
         this.type = type;
         if (this.type.includes("transfer") || this.type == "start") {
             this.startArg =  parseFloat(startArg);
@@ -600,6 +600,8 @@ class Orbit {
         } else if (this.type == "end") {
             this.startArg =  parseFloat(startArg);
         }
+        this.vPeriapsis = Math.sqrt(G * EARTH_MASS * (2/(this.periapsis * 1000) - 1/(this.semiMajorAxis * 1000))) // m/s
+        this.vApoapsis = this.isCircular ? this.vPeriapsis: Math.sqrt(G * EARTH_MASS * (2/(this.apoapsis * 1000) - 1/(this.semiMajorAxis * 1000))) // m/s
     }
 }
 

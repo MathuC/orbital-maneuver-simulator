@@ -113,8 +113,8 @@ def process_maneuver_data(start_orbit: dict, end_orbit: dict, optimization) -> d
     def isEqual(orbit1, orbit2):
         return orbit1["axis"] == orbit2["axis"] and orbit1["ecc"] == orbit2["ecc"] and standardize_angle(orbit1["arg"]) == standardize_angle(orbit2["arg"])
     
-    def velocity(r, semi_major_axis):
-        return math.sqrt(G * EARTH_MASS * (2/r - 1/semi_major_axis))
+    def velocity(r, semi_major_axis): # m/s
+        return math.sqrt(G * EARTH_MASS * (2/(r * 1000) - 1/(semi_major_axis * 1000)))
     
     def compute_total_delta_t(orbits):
         total_delta_t = 0
