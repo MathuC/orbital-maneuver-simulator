@@ -279,15 +279,15 @@ function generateOrbitInfo(orbit) {
     createLine("Semi-Major Axis", orbit.semiMajorAxis.toLocaleString() + " km");
     if (!orbit.isCircular) {
         createLine("Semi-Minor Axis", Math.round(orbit.semiMinorAxis).toLocaleString() + " km");
-        createLine("Eccentricity", orbit.e);
+        createLine("Eccentricity", Math.round(orbit.e * 1000)/1000);
         createLine("Periapsis", Math.round(orbit.periapsis).toLocaleString() + " km");
         createLine("Apoapsis", Math.round(orbit.apoapsis).toLocaleString() + " km");
         createLine("Focal Distance", Math.round(orbit.focalDistance).toLocaleString() + " km");
     }
     createLine("Argument of Periapsis", Math.round(orbit.argumentOfPeriapsis * 180/Math.PI) + "°");
     if (!orbit.isCircular) {
-        createLine("Velocity at Periapsis", Math.round(orbit.vPeriapsis) + " m/s");
-        createLine("Velocity at Apoapsis", Math.round(orbit.vApoapsis) + " m/s");
+        createLine("Velocity at Periapsis", Math.round(orbit.vPeriapsis).toLocaleString() + " m/s");
+        createLine("Velocity at Apoapsis", Math.round(orbit.vApoapsis).toLocaleString() + " m/s");
     } else {
         createLine("Velocity", Math.round(orbit.vPeriapsis) + " m/s");
     }
