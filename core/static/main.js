@@ -524,7 +524,7 @@ function updateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, str
             } else if  (theta1 == Math.PI) {
                 location1 += " (apoapsis)"
             }
-            createLine("Starting Location", location1);
+            createLine("Location", location1);
 
             let location2 = orbitTypeTitleMap[orbits[id + 1].type] + " @ ";
             let theta2 = orbits[id + 1]["startArg"] % (2 * Math.PI);
@@ -534,8 +534,8 @@ function updateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, str
             } else if  (theta2 == Math.PI) {
                 location2 += " (apoapsis)"
             }
-            createLine("Target Location", location2);
-            
+            createLine("Target", location2);
+
             createLine("Thrust Mode", "Impulse");
             info.innerHTML+= '<br>';
         }   
