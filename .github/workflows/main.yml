@@ -7,10 +7,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: webfactory/ssh-agent
-        uses: webfactory/ssh-agent@v0.9.0
-        with: 
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: install ssh keys
+        run: |
+          install -m 600 -D /dev/null ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/oms_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
 
       - name: connect and deploy
         run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && ./deploy.sh"
+
+      - name: cleanup
+        run: rm -rf ~/.ssh
