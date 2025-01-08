@@ -8,7 +8,7 @@ jobs:
 
     steps:
       - name: webfactory/ssh-agent
-        uses: webfactory/ssh-agent@v.0.9.0
+        uses: webfactory/ssh-agent@v0.9.0
         with: 
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
