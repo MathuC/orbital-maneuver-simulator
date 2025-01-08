@@ -515,15 +515,27 @@ function updateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, str
             createTitle("Burn " + (id + 1), orbitTypeColorMap[orbit.type]);
             createLine("Δv", Math.abs(burns[id]).toLocaleString() + " m/s");
             createLine("Direction", burns[id] > 0? "Prograde":"Retrograde");
-            createLine("Orbit", orbitTypeTitleMap[orbit.type]);
-            let theta = orbit["endArg"] % (2 * Math.PI);
-            let location = Math.round((theta/(2 * Math.PI)) * 360) + "°";
-            if (theta == 0) {
-                location += " (periapsis)"
-            } else if  (theta == Math.PI) {
-                location += " (apoapsis)"
+
+            let location1 = orbitTypeTitleMap[orbit.type] + " @ ";
+            let theta1 = orbit["endArg"] % (2 * Math.PI);
+            location1 += Math.round((theta1/(2 * Math.PI)) * 360) + "°";
+            if (theta1 == 0) {
+                location1 += " (periapsis)"
+            } else if  (theta1 == Math.PI) {
+                location1 += " (apoapsis)"
             }
-            createLine("True Anomaly", location);
+            createLine("Starting Location", location1);
+
+            let location2 = orbitTypeTitleMap[orbits[id + 1].type] + " @ ";
+            let theta2 = orbits[id + 1]["startArg"] % (2 * Math.PI);
+            location2 += Math.round((theta2/(2 * Math.PI)) * 360) + "°";
+            if (theta2 == 0) {
+                location2 += " (periapsis)"
+            } else if  (theta2 == Math.PI) {
+                location2 += " (apoapsis)"
+            }
+            createLine("Target Location", location2);
+            
             createLine("Thrust Mode", "Impulse");
             info.innerHTML+= '<br>';
         }   
