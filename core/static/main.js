@@ -289,7 +289,7 @@ function generateOrbitInfo(orbit) {
         createLine("Velocity at Periapsis", Math.round(orbit.vPeriapsis).toLocaleString() + " m/s");
         createLine("Velocity at Apoapsis", Math.round(orbit.vApoapsis).toLocaleString() + " m/s");
     } else {
-        createLine("Velocity", Math.round(orbit.vPeriapsis) + " m/s");
+        createLine("Velocity", Math.round(orbit.vPeriapsis).toLocaleString() + " m/s");
     }
     createLine("Orbital Period", formatTime(orbit.orbitalPeriod));
 }
