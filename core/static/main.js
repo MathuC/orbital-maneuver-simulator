@@ -274,7 +274,12 @@ function createTitle(name, color) {
 }
 
 function generateCredit() {
-    info.innerHTML += '<div id="credit" style="">Contribute or explore more of my projects on <a href="https://mathusan.net">mathusan.net</a></div>';
+    let creditHTML = '<div id="credit">';
+    creditHTML += '<div>Contribute and report bugs on <a href="https://github.com/MathuC/orbital-maneuver-simulator">GitHub</a></div>';
+    creditHTML += '<div>Explore more of my projects on <a href="https://mathusan.net">mathusan.net</a></div>';
+    creditHTML += '</div>';
+
+    info.innerHTML += creditHTML;
 }
 
 // info helper function
