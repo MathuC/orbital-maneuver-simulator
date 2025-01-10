@@ -273,6 +273,10 @@ function createTitle(name, color) {
     '<div style="width:20px;height:20px;margin-left:10px;display:inline-block;background-color:'+color+'"></div><br>';
 }
 
+function generateCredit() {
+    info.innerHTML += '<div id="credit" style="">Contribute or explore more of my projects on <a href="https://mathusan.net">mathusan.net</a></div>';
+}
+
 // info helper function
 function generateOrbitInfo(orbit) {
     createLine("Shape", orbit.isCircular ? "Circular" : "Elliptical");
@@ -308,7 +312,8 @@ function updateOrbitInfo(orbit) {
     generateOrbitInfo(orbit);
 
     // credit
-    info.innerHTML += '<div id="credit" style=""> To see more of my projects, visit <a href="https://mathusan.net">mathusan.net</a></div>';
+    generateCredit();
+    
 }
 
 // maneuver info
@@ -542,5 +547,5 @@ function updateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, str
     })
 
     // credit
-    info.innerHTML += '<div id="credit" style=""> To see more of my projects, visit <a href="https://mathusan.net">mathusan.net</a></div>';
+    generateCredit();
 }
