@@ -241,6 +241,9 @@ function autofillOrbitForm(id) {
     attributes.forEach((attr) => {
         document.getElementById("orbit-" + attr + "-value").value = document.getElementById("maneuver-" + attr + "-" + id + "-value").value;
         document.getElementById("orbit-" + attr + "-slider").value = document.getElementById("maneuver-" + attr + "-" + id + "-slider").value;
+        if (attr == "axis") {
+            changeMaxEcc("orbit-axis", "orbit-ecc");
+        }
     });
     document.getElementById("orbit-tab-btn").click();
 }
@@ -278,7 +281,6 @@ function generateCredit() {
     creditHTML += '<div>Contribute and report bugs on <a href="https://github.com/MathuC/orbital-maneuver-simulator">GitHub</a></div>';
     creditHTML += '<div>Explore more of my projects on <a href="https://mathusan.net">mathusan.net</a></div>';
     creditHTML += '</div>';
-
     info.innerHTML += creditHTML;
 }
 
