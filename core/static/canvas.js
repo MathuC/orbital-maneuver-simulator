@@ -553,14 +553,14 @@ const loadingScreen = new (class {
         ctx.font = "40px Courier New";
         ctx.textAlign = "left";
         ctx.fillStyle = "white";
-        ctx.fillText("loading"+".".repeat(this.time % 3 + 1), canvas.width/2 - 90, canvas.height/2); 
+        ctx.fillText("loading"+".".repeat(this.time % 4), canvas.width/2 - 90, canvas.height/2); 
         this.time++;
     }
     
     start() {
         if (this.isRunning == false) {
             this.draw(); // first frame
-            this.animation = setInterval(this.draw.bind(this), 500);
+            this.animation = setInterval(this.draw.bind(this), 250);
             this.isRunning = true;
             document.getElementById("orbit-submit-btn").disabled = true;
             document.getElementById("maneuver-submit-btn").disabled = true;
