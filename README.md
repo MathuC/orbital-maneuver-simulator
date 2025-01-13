@@ -12,8 +12,8 @@ Whether you're a student, an aerospace enthusiast or a professional, this tool m
 # Project Architecture
 
 ## Technologies Used
- - **Frontend:** HTML, CSS, Javascript. Canvas.js for drawing each frame in the 2D simulation. Chart.js for the charts in the information panel.
- - **Backend:** Built with Django. Deployed with DigitalOcean, Gunicorn, Nginx, Docker Compose and GitHub Actions.
+- **Frontend:** HTML, CSS, Javascript. Canvas.js for drawing each frame in the 2D simulation. Chart.js for the charts in the information panel.
+- **Backend:** Built with Django. Deployed with DigitalOcean, Gunicorn, Nginx, Docker Compose and GitHub Actions.
 
 ## Important Components
 
@@ -76,13 +76,13 @@ docker compose up -d --build
  - Open your browser and navigate to http://127.0.0.1:8080/
 
 # Contributing
- - To inform us about bugs or about enhancement you think the web app can benefit from, [submit a new issue](https://github.com/MathuC/orbital-maneuver-simulator/issues/new) in the repository.
- - To contribute to the code, fork the repository, commit your changes, squash your commits, and then submit a Pull Request.
+- To inform us about bugs or about enhancement you think the web app can benefit from, [submit a new issue](https://github.com/MathuC/orbital-maneuver-simulator/issues/new) in the repository.
+- To contribute to the code, fork the repository, commit your changes, squash your commits, and then submit a Pull Request.
 
 # What's Next?
-- [x] 3 more orbital maneuver strategies
-- [x] Add *Save time* optimization criteria in the form
-- [x] 4 more orbital maneuver strategies with circularization of orbit as the first step
-- [ ] Unit tests
-- [ ] Add inclination and longitude of the ascending node in the form
-- [ ] Add initial true anomalie of the satellite in the form
+- [x] Implement 3 more orbital maneuver strategies
+- [x] Add *Save time* optimization criteria to the form
+- [x] Implement 4 more orbital maneuver strategies with circularization of orbit as the first step
+- [ ] Write Unit tests
+- [ ] Add inclination and longitude of the ascending node to the form
+- [ ] Add initial true anomalie of the satellite to the form
