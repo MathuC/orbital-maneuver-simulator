@@ -31,9 +31,9 @@ Whether you're a student, an aerospace enthusiast or a professional, this tool m
 ### Backend
 `core/utils.py` houses the key functions that process the user's data, makes all of the necessary calculations to provide the essential information needed for the simulation.
   - `ellipse_bounding_box(a, e, theta)` returns the length and width of a bounding box for a rotated ellipse. Calculates the roots of the derivatives of the parametric equations that define the rotated ellipse to find the four edges of the bouding box. Crucial for fitting the different orbits inside the simulation's boundaries.
-  - `max_length_earth_pos(orbits)` returns the spatial scale and the earth's position based on the bounding boxes of all of the rotated ellipses that define the orbits.
-  - `process_maneuver_data(start_orbit, end_orbit, optimization)` iterates through 8 strategies to find the best strategy for the orbital maneuver according to the optimization criteria provided by the user: *Save fuel* or *Save time*. Returns burns, orbits, the spatial scale and the earth's position defined by the chosen strategy. *(for the orbital maneuver simulation)*
-  - `process_orbit_data(semi_major_axis, ecc, arg)` returns the spatial scale and the earth's position based on the bounding box of the ellipse that defines the orbit. *(for the orbit simulation)*
+  - `max_length_earth_pos(orbits)` returns the distance scale and the earth's position based on the bounding boxes of all of the rotated ellipses that define the orbits.
+  - `process_maneuver_data(start_orbit, end_orbit, optimization)` iterates through 8 strategies to find the best strategy for the orbital maneuver according to the optimization criteria provided by the user: *Save fuel* or *Save time*. Returns burns, orbits, the distance scale and the earth's position defined by the chosen strategy. *(for the orbital maneuver simulation)*
+  - `process_orbit_data(semi_major_axis, ecc, arg)` returns the distance scale and the earth's position based on the bounding box of the ellipse that defines the orbit. *(for the orbit simulation)*
 
 # Setup
 Clone the repository:
