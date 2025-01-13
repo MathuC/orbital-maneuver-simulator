@@ -88,6 +88,6 @@ docker compose up -d --build
 - [x] Implement 3 more orbital maneuver strategies
 - [x] Add *Save time* optimization criteria to the form
 - [x] Implement 4 more orbital maneuver strategies with circularization of orbit as the first step
-- [ ] Write Unit tests
+- [x] Write Unit tests
 - [ ] Add inclination and longitude of the ascending node to the form
 - [ ] Add initial true anomalie of the satellite to the form
