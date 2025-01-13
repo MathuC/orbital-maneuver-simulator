@@ -36,17 +36,17 @@ Whether you're a student, an aerospace enthusiast or a professional, this tool m
   - `process_orbit_data(semi_major_axis, ecc, arg)` returns the spatial scale and the earth's position based on the bounding box of the ellipse that defines the orbit. *(for the orbit simulation)*
 
 # Setup
-## Development Server
-**Prerequisites:** Python 3
-1. Clone the repository:
+Clone the repository:
 ```bash
 git clone https://github.com/MathuC/orbital-maneuver-simulator.git
 ```
-2. Create virtual environment:
+## Development Server
+**Prerequisites:** Python 3
+1. Create virtual environment:
 ```bash
 python3 -m venv venv
 ```
-3. Activate virtual environment
+2. Activate virtual environment
  - macOS/Linux:
 ```bash
 source venv/bin/activate
@@ -55,28 +55,24 @@ source venv/bin/activate
 ```batch
 venv\Scripts\activate
 ```
-4. Install dependencies:
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-5. Start the development server:
+4. Start the development server:
 ```bash
 python manage.py runserver
 ```
-6. Access the web app in your browser:
+5. Access the web app in your browser:
  - Open your browser and navigate to http://127.0.0.1:8000/
 
 ## Production Server
 **Prerequisites:** Docker, Docker Compose
-1. Clone the repository:
-```bash
-git clone https://github.com/MathuC/orbital-maneuver-simulator.git
-```
-2. Start the production server:
+1. Start the production server:
 ```bash
 docker compose up -d --build
 ```
-3. Access the web app in your browser:
+2. Access the web app in your browser:
  - Open your browser and navigate to http://127.0.0.1:8080/
 
 # Contributing
