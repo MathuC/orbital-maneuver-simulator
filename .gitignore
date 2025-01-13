@@ -1,4 +1,5 @@
-.private
-orbital_maneuver_simulator/settings.py
 .DS_Store
 **/__pycache__/
+.private
+.venv
+orbital_maneuver_simulator/settings.py
