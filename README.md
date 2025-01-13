@@ -13,7 +13,7 @@ Whether you're a student, an aerospace enthusiast or a professional, this tool m
 
 ## Technologies Used
 - **Frontend:** HTML, CSS, Javascript. Canvas.js for drawing each frame in the 2D simulation. Chart.js for the charts in the information panel.
-- **Backend:** Built with Django. Deployed with DigitalOcean, Gunicorn, Nginx, Docker Compose and GitHub Actions.
+- **Backend:** Built with Django. Deployed with DigitalOcean, Gunicorn, Nginx and Docker Compose. Integrated CI/CD with GitHub Actions.
 
 ## Important Components
 
