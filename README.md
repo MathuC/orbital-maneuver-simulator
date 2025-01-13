@@ -38,26 +38,28 @@ Whether you're a student, an aerospace enthusiast or a professional, this tool m
 ```bash
 git clone https://github.com/MathuC/orbital-maneuver-simulator.git
 ```
-2. Create and activate a virtual environment:
+2. Create virtual environment:
+```bash
+python3 -m venv venv
+```
+3. Activate virtual environment
  - macOS/Linux:
-  ```bash
-  python3 -m venv venv
-  source venv/bin/activate
-  ```
+```bash
+source venv/bin/activate
+```
  - Windows:
-  ```batch
-  python -m venv venv
-  venv\Scripts\activate
-  ```
-3. Install dependencies:
+```batch
+venv\Scripts\activate
+```
+4. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-4. Start the development server:
+5. Start the development server:
 ```bash
 python manage.py runserver
 ```
-5. Access the web app in your browser:
+6. Access the web app in your browser:
  - Open your browser and navigate to http://127.0.0.1:8000/
 
 ## Production Server
