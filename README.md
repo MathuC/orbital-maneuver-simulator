@@ -66,6 +66,11 @@ python manage.py runserver
 5. Access the web app in your browser:
  - Open your browser and navigate to http://127.0.0.1:8000/
 
+### Unit Tests
+```batch
+python core/test_utils.py
+```
+
 ## Production Server
 **Prerequisites:** Docker, Docker Compose
 1. Start the production server:

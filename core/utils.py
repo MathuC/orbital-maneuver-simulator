@@ -16,6 +16,13 @@ def ellipse_bounding_box(a, e, theta):
     #semi minor axis
     b = a * math.sqrt(1 - (e ** 2))
 
+    if (e == 0): # if orbit is a circle
+        return [2 * a, 2 * a]
+    elif (theta % math.pi == 0): # if orbit is an ellipse but semi major axis is horizontal
+        return [2 * a, 2 * b]
+    elif (theta % math.pi == math.pi/2): # if orbit is an ellipse but semi major axis is vertical
+        return [2 * b, 2 * a]
+
     # finding min, max values of x, y of the ellipse using derivatives of parametric equations
     # this is done to perfectly fit the elliptical orbit in the simulation
 
@@ -43,10 +50,6 @@ def max_length_earth_pos(orbits):
     y_bottom = []
     y_top = []
     for orbit in orbits: 
-        if (orbit["ecc"] == 0):
-            for my_list in (x_left, x_right, y_bottom, y_top):
-                my_list.append(orbit["axis"])
-            continue
         bounding_box = ellipse_bounding_box(orbit["axis"], orbit["ecc"], orbit["arg"])
         semi_minor_axis =  orbit["axis"] * math.sqrt(1 - (orbit["ecc"] ** 2))
         focal_distance = math.sqrt(orbit["axis"] ** 2 - semi_minor_axis ** 2)
@@ -79,10 +82,7 @@ def process_orbit_data(semi_major_axis: int, ecc: float, arg: int) -> dict:
     ecc = float(ecc)
     arg = math.radians(int(arg))
 
-    if (ecc == 0 or arg % (math.pi/2) == 0): # circle or horizontal/vertical ellipse
-        max_length = 2 * semi_major_axis
-    else: 
-        max_length = max(ellipse_bounding_box(semi_major_axis, ecc, arg))
+    max_length = max(ellipse_bounding_box(semi_major_axis, ecc, arg))
 
     return {"max_length": max_length}
 
