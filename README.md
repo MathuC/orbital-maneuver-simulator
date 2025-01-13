@@ -81,7 +81,7 @@ docker compose up -d --build
  - Open your browser and navigate to http://127.0.0.1:8080/
 
 # Contributing
-- To inform us about bugs or about enhancement you think the web app can benefit from, [submit a new issue](https://github.com/MathuC/orbital-maneuver-simulator/issues/new) in the repository.
+- To inform us about bugs or about enhancements you think the web app can benefit from, [submit a new issue](https://github.com/MathuC/orbital-maneuver-simulator/issues/new) in the repository.
 - To contribute to the code, fork the repository, commit your changes, squash your commits, and then submit a Pull Request.
 
 # What's Next?
