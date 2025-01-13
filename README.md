@@ -5,6 +5,10 @@ Whether you're a student, an aerospace enthusiast or a professional, this tool m
 
 ## Demo
 
+<a href="https://www.youtube.com/watch?v=ykY9Iua_OEU">
+  <img src="img/omsDemo.gif" width="500">
+</a>
+
 # Project Architecture
 
 ## Tech Stack
