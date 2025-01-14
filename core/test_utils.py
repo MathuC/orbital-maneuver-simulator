@@ -10,6 +10,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(utils.normalize_angle(2 * math.pi + 3), 3)
     
     def test_standardize_angle(self):
+        self.assertEqual(utils.standardize_angle(0), 0)
         self.assertEqual(utils.standardize_angle(math.pi + 1e-16), math.pi)
         self.assertEqual(utils.standardize_angle(2 * math.pi + 3.4e-16), 2 * math.pi)
     
