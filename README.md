@@ -4,10 +4,7 @@ The [Orbital Maneuver Simulator](https://www.orbitalmaneuversimulator.com/) is d
 Whether you're a student, an aerospace enthusiast or a professional, this tool makes understanding orbital maneuvers more intuitive and interactive.
 
 ## Demo
-
-<a href="https://www.youtube.com/watch?v=ykY9Iua_OEU">
-  <img src="img/omsDemo.gif" width="500">
-</a>
+https://github.com/user-attachments/assets/fea5ac51-df97-47ce-bbd3-6c186454e32d
 
 # Project Architecture
 
