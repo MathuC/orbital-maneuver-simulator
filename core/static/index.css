@@ -7,6 +7,43 @@ body {
     font-weight: 550;
     text-align: center;
     margin: 20px;
+    margin-top: 0px;
+}
+
+#links-container {
+    height: 40px;
+}
+
+#gh-logo-container {
+    float: right;
+}
+
+#gh-logo {
+    width:30px;
+    margin: 5px;
+}
+
+#my-link-container {
+    float: left;
+}
+
+#my-link {
+    display: block; 
+    margin: 5px;
+    text-decoration: none; 
+    color: black;
+    padding-left: 2px;
+    padding-right: 2px;
+    font-family: Courier New;
+    font-size: 18px;
+    border-radius: 5px;
+	background-color: rgb(245, 245, 245);
+	border: 1px solid rgb(235, 235, 235);
+}
+
+#my-link:hover {
+    background-color: rgb(235, 235, 235);
+	border: 1px solid rgb(225, 225, 225);
 }
 
 #container {
