@@ -276,14 +276,6 @@ function createTitle(name, color) {
     '<div style="width:20px;height:20px;margin-left:10px;display:inline-block;background-color:'+color+'"></div><br>';
 }
 
-function generateLinks() {
-    let creditHTML = '<div id="credit">';
-    creditHTML += '<div>Report bugs and contribute on the <a href="https://github.com/MathuC/orbital-maneuver-simulator">GitHub repository</a></div>';
-    creditHTML += '<div>Explore more of my projects on <a href="https://mathusan.net">mathusan.net</a></div>';
-    creditHTML += '</div>';
-    info.innerHTML += creditHTML;
-}
-
 // info helper function
 function generateOrbitInfo(orbit) {
     createLine("Shape", orbit.isCircular ? "Circular" : "Elliptical");
@@ -317,9 +309,6 @@ function updateOrbitInfo(orbit) {
     timeChartCtx.style.display='none';
 
     generateOrbitInfo(orbit);
-
-    // credit
-    generateLinks();
     
 }
 
@@ -552,7 +541,4 @@ function updateManeuverInfo(orbits, burns, totalDeltaVList, totalDeltaTList, str
             info.innerHTML+= '<br>';
         }   
     })
-
-    // credit
-    generateLinks();
 }

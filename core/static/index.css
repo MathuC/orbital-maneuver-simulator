@@ -7,6 +7,44 @@ body {
     font-weight: 550;
     text-align: center;
     margin: 20px;
+    margin-top: 0px;
+}
+
+#links-container {
+    height: 40px;
+}
+
+#gh-logo-container {
+    float: right;
+}
+
+#gh-logo {
+    width:30px;
+    margin: 5px;
+}
+
+#my-link-container {
+    float: left;
+}
+
+#my-link {
+    display: block; 
+    margin: 5px;
+    text-decoration: none; 
+    color: black;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 18px;
+    font-weight: 550;
+    border-radius: 5px;
+	background-color: rgb(245, 245, 245);
+	border: 1px solid rgb(235, 235, 235);
+}
+
+#my-link:hover {
+    background-color: rgb(235, 235, 235);
+	border: 1px solid rgb(225, 225, 225);
 }
 
 #container {
@@ -207,10 +245,4 @@ body {
 #strat-tooltip-hover-container:hover #strat-tooltip {
     visibility: visible;
     opacity: 0.8;
-}
-
-#credit {
-    font-family: Arial;
-    font-size: 12px;
-    padding-top: 20px;
 }
