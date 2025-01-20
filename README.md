@@ -61,7 +61,7 @@ pip install -r requirements.txt
 python manage.py runserver
 ```
 5. Access the web app in your browser:
- - Open your browser and navigate to http://127.0.0.1:8000/
+ - Open your browser and navigate to http://localhost:8000/
 
 ### Unit Tests
 ```batch
@@ -75,7 +75,7 @@ python core/test_utils.py
 docker compose up -d --build
 ```
 2. Access the web app in your browser:
- - Open your browser and navigate to http://127.0.0.1:8080/
+ - Open your browser and navigate to http://localhost:8080/
 
 # Contributing
 - To inform us about bugs or about enhancements you think the web app can benefit from, [submit a new issue](https://github.com/MathuC/orbital-maneuver-simulator/issues/new) in the repository.
