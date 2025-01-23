@@ -41,7 +41,7 @@ git clone https://github.com/MathuC/orbital-maneuver-simulator.git
 **Prerequisites:** Python 3
 1. Create virtual environment:
 ```bash
-python3 -m venv venv
+python -m venv venv
 ```
 2. Activate virtual environment
  - macOS/Linux:
