@@ -40,28 +40,28 @@ git clone https://github.com/MathuC/orbital-maneuver-simulator.git
 ## Development Server
 **Prerequisites:** Python 3
 1. Create virtual environment:
-```bash
-python -m venv venv
-```
+   ```bash
+   python -m venv venv
+   ```
 2. Activate virtual environment:
- - macOS/Linux:
-```bash
-source venv/bin/activate
-```
- - Windows:
-```batch
-venv\Scripts\activate
-```
+   - macOS/Linux:
+     ```bash
+     source venv/bin/activate
+     ```
+   - Windows:
+     ```batch
+     venv\Scripts\activate
+     ```
 3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 4. Start the development server:
-```bash
-python manage.py runserver
-```
+   ```bash
+   python manage.py runserver
+   ```
 5. Access the web app in your browser:
- - Open your browser and navigate to http://localhost:8000/
+   - Open your browser and navigate to http://localhost:8000/
 
 ### Unit Tests
 ```batch
@@ -71,11 +71,11 @@ python core/test_utils.py
 ## Production Server
 **Prerequisites:** Docker, Docker Compose
 1. Start the production server:
-```bash
-docker compose up -d --build
-```
+   ```bash
+   docker compose up -d --build
+   ```
 2. Access the web app in your browser:
- - Open your browser and navigate to http://localhost:8080/
+   - Open your browser and navigate to http://localhost:8080/
 
 # Contributing
 - To inform us about bugs or about enhancements you think the web app can benefit from, [submit a new issue](https://github.com/MathuC/orbital-maneuver-simulator/issues/new) in the repository.
