@@ -43,7 +43,7 @@ git clone https://github.com/MathuC/orbital-maneuver-simulator.git
 ```bash
 python -m venv venv
 ```
-2. Activate virtual environment
+2. Activate virtual environment:
  - macOS/Linux:
 ```bash
 source venv/bin/activate
